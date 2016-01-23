@@ -17,6 +17,8 @@ import com.heroku.sdk.jdbc.DatabaseUrl;
 public class Server {
 
    public static void main(String[] args) {
+      port(Integer.valueOf(System.getenv("PORT")));
+      staticFileLocation("/public");
 
       get("/", (req, res) -> "bobby likes ramen");
    }
