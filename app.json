@@ -1,0 +1,5 @@
+{
+  "name": "DataSaints - Alienware Reader Server",
+  "description": "Senior project, DataSaints team. Alienware Reader Server and Network Manager",
+  "image": "heroku/java"
+}
