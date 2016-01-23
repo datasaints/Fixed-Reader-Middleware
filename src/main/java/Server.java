@@ -13,16 +13,12 @@ import static spark.Spark.get;
 
 import com.heroku.sdk.jdbc.DatabaseUrl;
 
-import static javax.measure.unit.SI.KILOGRAM;
-import javax.measure.quantity.Mass;
-import org.jscience.physics.model.RelativisticModel;
-import org.jscience.physics.amount.Amount;
 
 public class Server {
 
    public static void main(String[] args) {
 
-
+      get("/", (req, res) -> "bobby likes ramen");
    }
 
 }
