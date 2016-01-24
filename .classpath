@@ -2,6 +2,15 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
-	<classpathentry kind="lib" path="lib/AlienRFID.jar"/>
+	<classpathentry kind="lib" path="lib/alien/AlienRFID.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/Fixed-Reader-Middleware/lib/alien/doc/index.html!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/mysql/mysql-connector-java-5.1.38-bin.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/Fixed-Reader-Middleware/lib/mysql/docs/connector-j.html!/"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
