@@ -1,11 +1,10 @@
-import com.alien.enterpriseRFID.discovery.*;
-import com.alien.enterpriseRFID.reader.AlienClass1Reader;
-import com.alien.enterpriseRFID.reader.AlienReaderException;
-import com.alien.enterpriseRFID.tags.Tag;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Scanner;
+
+import com.alien.enterpriseRFID.reader.AlienClass1Reader;
+import com.alien.enterpriseRFID.reader.AlienReaderException;
+import com.alien.enterpriseRFID.tags.Tag;
 
 public class Driver {
    ArrayList<AlienClass1Reader> readerList = new ArrayList<AlienClass1Reader>();

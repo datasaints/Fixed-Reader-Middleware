@@ -12,5 +12,6 @@
 			<attribute name="javadoc_location" value="jar:platform:/resource/Fixed-Reader-Middleware/lib/mysql/docs/connector-j.html!/"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="/home/bobby/workspace/FixedReaderApp/lib/alien/comm.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
