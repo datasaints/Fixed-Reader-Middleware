@@ -1,4 +1,5 @@
 import java.sql.*;
+import java.util.HashSet;
 
 import com.mysql.jdbc.Driver;
 
@@ -44,8 +45,8 @@ public class Database {
       try {
          while (set.next()) {
             System.out.printf("Equipment #%d\n", idx);
-            System.out.printf("\tItemID:     %d\n", set.getInt("ItemID"));
-            System.out.printf("\tEmployeeID: %d\n", set.getInt("EmployeeID"));
+            System.out.printf("\tItemID:     %s\n", set.getString("ItemID"));
+            System.out.printf("\tEmployeeID: %s\n", set.getString("EmployeeID"));
             System.out.printf("\tItemName:   %s\n", set.getString("ItemName"));
             System.out.printf("\tCheckIn:    %s\n", set.getString("CheckIn"));
             System.out.printf("\tCheckOut:   %s\n", set.getString("CheckOut"));
@@ -57,8 +58,43 @@ public class Database {
          System.out.println("ResultSet iteration error");
          System.exit(-1);
       }
+      
+/*      // delete, testing purposes
+      System.out.println("\t\tHacky inserting");
+      HashSet<String> list = new HashSet<String>();
+      list.add("aaaaa");
+      list.add("bbbbb");
+      list.add("ccccc");
+      addTagsToDatabase(list);*/
    }
-   
+
+   public void addTagsToDatabase(HashSet<String> tagList) {
+      // String sql = "INSERT INTO Equipment VALUES (100, 'Zara', 'Ali', 18)";
+      for (String tag : tagList) {
+         try {
+            System.out.printf("Inserting tag: %s\n", tag);
+            statement = connection.createStatement();
+            String checkin = (new Date(System.currentTimeMillis())).toString()
+                  + " " + (new Time(System.currentTimeMillis())).toString();
+            String checkout = (new Date(System.currentTimeMillis())).toString()
+                  + " " + (new Time(System.currentTimeMillis())).toString();
+            String lastcali = (new Date(System.currentTimeMillis())).toString()
+                  + " " + (new Time(System.currentTimeMillis())).toString();
+
+            String sql = "INSERT INTO Equipment VALUES ('" + tag;
+            sql += "', '000', 'item_name', ";
+            sql += "'" + checkin + "', ";
+            sql += "'" + checkout + "', ";
+            sql += "'" + lastcali + "')";
+
+            System.out.printf("query:\t%s\n", sql);
+            statement.executeUpdate(sql);
+         } catch (SQLException e) {
+            System.out.println("Error adding tag, possibly duplicate");
+         }
+      }
+      System.out.println("Inserted\n");
+   }
    
 
 }
