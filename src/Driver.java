@@ -9,7 +9,7 @@ import java.util.Scanner;
 
 public class Driver {
    ArrayList<AlienClass1Reader> readerList = new ArrayList<AlienClass1Reader>();
-   static Thread networkDiscover;
+   NetworkDiscover networkDiscover;
 
    public static void main(String[] args) {
       Scanner scan = new Scanner(System.in);
@@ -18,32 +18,98 @@ public class Driver {
       
       Database db = new Database();
 
-      while ((choice = printMainMenu(scan)) != 4) {
-         switch (choice) {
-            case 1:  //reader = discoverReader();
-                     break;
-            case 2:  getTagsAndUpdateDatabase(reader, db);
-                     break;
-            case 3:  db.getRecentItems();
-                     break;
-            case 4:  System.exit(0);
-            default: System.out.println("Invalid Option");
+      while ((choice = printMainMenu(scan)) != 0) {
+         try {
+            switch (choice) {
+               case 0:  System.exit(0);
+                        break;
+               case 1:  reader = discoverReader(scan);
+                        break;
+               case 2:  getTagsAndUpdateDatabase(reader, db);
+                        break;
+               case 3:  db.getRecentItems();
+                        break;
+               case 4:  sendReaderCommand(reader, scan);
+                        break;
+               default: System.out.println("Invalid Option");
+            }
+         } catch (AlienReaderException e) {
+            e.printStackTrace();
          }
       }
 
       System.out.println("Exiting...");
    }
 
+   private static void sendReaderCommand(AlienClass1Reader reader, Scanner scan) throws AlienReaderException {
+      if (reader == null) {
+         System.out.println("Reader has not been set. Perform a 'Connect Reader'" +
+                            " call from the main menu first.");
+         return;
+      }
+      reader.open();
+      System.out.println("Entering reader communication mode ('q' to quit)");
+      do {
+         System.out.println("\nAlien>");
+         String line = scan.nextLine();
+         if (line.equals("q")) break;
+         System.out.println(reader.doReaderCommand(line));
+      } while(true);
 
-   public static int printMainMenu(Scanner scan) {
+      System.out.println("\nGoodbye!");
+      reader.close();
+   }
+
+
+   private static AlienClass1Reader discoverReader(Scanner scan) {
+      AlienClass1Reader reader = new AlienClass1Reader();
+      
+      System.out.print("Enter the COM number of the serial port: ");
+      
+      reader.setConnection("COM" + scan.nextInt());
+//      System.out.println();
+      try {
+         reader.open();
+         reader.clearTagList();
+         
+         // Establish behavioral parameters
+         reader.setAutoMode(AlienClass1Reader.OFF);
+         reader.setRFLevel(AlienController.RF_LEVEL);
+         reader.setTagMask(AlienController.tagMask);
+         reader.setTagListFormat(AlienClass1Reader.TEXT_FORMAT);
+         reader.setTagStreamFormat(AlienClass1Reader.TEXT_FORMAT);
+         reader.setTagListMillis(AlienClass1Reader.ON);
+         
+      } catch (AlienReaderException e) {
+         e.printStackTrace();
+      }
+//      } catch (AlienReaderConnectionRefusedException e) {
+//         // TODO Auto-generated catch block
+//         e.printStackTrace();
+//      } catch (AlienReaderNotValidException e) {
+//         // TODO Auto-generated catch block
+//         e.printStackTrace();
+//      } catch (AlienReaderTimeoutException e) {
+//         // TODO Auto-generated catch block
+//         e.printStackTrace();
+//      } catch (AlienReaderConnectionException e) {
+//         // TODO Auto-generated catch block
+//         e.printStackTrace();
+//      }
+      
+      return reader;
+   }
+
+   private static int printMainMenu(Scanner scan) {
       System.out.println();
       System.out.println("============================");
       System.out.println("|           MENU           |");
       System.out.println("============================");
-      System.out.println("|1. Discover Reader        |");
+      System.out.println("|1. Connect Reader         |");
       System.out.println("|2. Stream Tag Data        |");
       System.out.println("|3. Show Database          |");
-      System.out.println("|4. Exit                   |");
+      System.out.println("|4. Send Reader Command    |");
+      System.out.println("|0. Exit                   |");
       System.out.println("============================");
       System.out.print("Select an option: ");
 

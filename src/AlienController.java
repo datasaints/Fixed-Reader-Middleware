@@ -2,8 +2,8 @@
 
 import java.net.UnknownHostException;
 
-import com.alien.enterpriseRFID.reader.AlienClass1Reader;
-import com.alien.enterpriseRFID.reader.AlienReaderException;
+import com.alien.*;
+import com.alien.enterpriseRFID.reader.*;
 
 public class AlienController {
    private AlienClass1Reader reader;
@@ -13,8 +13,8 @@ public class AlienController {
    private String username;
    private String password;
 
-   private final int RF_LEVEL = 167;
-   private String tagMask = "E200 XXXX XXXX XXXX XXXX XXXX";
+   final static int RF_LEVEL = 167;
+   static String tagMask = "E200 XXXX XXXX XXXX XXXX XXXX";
 
    /**
    * Constructor
