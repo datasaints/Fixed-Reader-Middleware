@@ -5,20 +5,22 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Driver {
+   ArrayList<AlienClass1Reader> readerList = new ArrayList<AlienClass1Reader>();
+   static Thread networkDiscover;
 
    public static void main(String[] args) {
       Scanner scan = new Scanner(System.in);
-      ArrayList<AlienClass1Reader> readerList = new ArrayList<AlienClass1Reader>();
+      AlienClass1Reader reader;
       int choice;
 
       while ((choice = printMainMenu(scan)) != 4) {
          switch (choice) {
-            case 0:	discoverReader();
-            break;
-            case 1: streamTags();
-            break;
-            case 2: printDatabase();
-            break;
+            case 0:  reader = discoverReader();
+                     break;
+            case 1:  streamTags();
+                     break;
+            case 2:  printDatabase();
+                     break;
             default: System.out.println("Invalid Option");
          }
       }
@@ -41,5 +43,13 @@ public class Driver {
       return scan.nextInt();
    }
 
-   public discoverReader()
+   public static AlienClass1Reader discoverReader() {
+      if (networkDiscover == null) {
+         networkDiscover = new NetworkDiscover()
+      }
+         
+         
+      
+      return null;
+   }
 }
