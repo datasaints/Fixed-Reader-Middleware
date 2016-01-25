@@ -13,8 +13,8 @@ public class AlienController {
    private String username;
    private String password;
 
-   private int RF_LEVEL = 300; // 167;
-   private String tagMask = "E200 XXXX XXXX XXXX XXXX XXXX";
+   public final static int RF_LEVEL = 300; // 167;
+   public final static String tagMask = "E200 XXXX XXXX XXXX XXXX XXXX";
 
    /**
    * Constructor
