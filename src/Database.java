@@ -69,7 +69,13 @@ public class Database {
    }
 
    public void addTagsToDatabase(HashSet<String> tagList) {
-      // String sql = "INSERT INTO Equipment VALUES (100, 'Zara', 'Ali', 18)";
+      String sql;
+      
+      if (tagList == null || tagList.isEmpty()) {
+         System.out.println("tag list is empty.");
+         return;
+      }
+       
       for (String tag : tagList) {
          try {
             System.out.printf("Inserting tag: %s\n", tag);
@@ -81,7 +87,7 @@ public class Database {
             String lastcali = (new Date(System.currentTimeMillis())).toString()
                   + " " + (new Time(System.currentTimeMillis())).toString();
 
-            String sql = "INSERT INTO Equipment VALUES ('" + tag;
+            sql = "INSERT INTO Equipment VALUES ('" + tag;
             sql += "', '000', 'item_name', ";
             sql += "'" + checkin + "', ";
             sql += "'" + checkout + "', ";

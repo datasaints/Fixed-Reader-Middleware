@@ -9,7 +9,7 @@ import com.alien.enterpriseRFID.tags.Tag;
 
 public class Driver {
    ArrayList<AlienClass1Reader> readerList = new ArrayList<AlienClass1Reader>();
-   NetworkDiscover networkDiscover;
+//   NetworkDiscover networkDiscover;
 
    public static void main(String[] args) throws UnknownHostException, AlienReaderException, InterruptedException {
       Scanner scan = new Scanner(System.in);
@@ -49,7 +49,7 @@ public class Driver {
       }
       reader.open();
       System.out.println("Entering reader communication mode ('q' to quit)");
-      scan.nextLine();
+
       do {
          System.out.print("\nAlien> ");
          String line = scan.nextLine();
@@ -72,7 +72,13 @@ public class Driver {
          System.out.println("Reader info: " + oldReader.getInfo());
          return oldReader;
       }
-      scan.nextLine();
+//      else {
+//         controller = new AlienController("192.168.0.106", 23, "alien", "password");
+//         controller.initializeReader();
+//         reader = controller.getReader();
+//         return reader;
+//      }
+
       System.out.println("Enter the LAN info of the reader");
       System.out.print("IP: ");
       ipAddr = scan.nextLine();
@@ -129,26 +135,35 @@ public class Driver {
       System.out.println("============================");
       System.out.print("Select an option: ");
 
-      return scan.nextInt();
+      return Integer.parseInt(scan.nextLine().trim());
    }
-   
+
    // Get unique list of tags after X number of trials and add to database
    // This will not update previous records of database, just add new entries
    public static void getTagsAndUpdateDatabase(AlienClass1Reader reader, Database db) throws InterruptedException, AlienReaderException {
+      if (reader == null) {
+         System.out.println("Reader has not been set. Perform a 'Connect Reader'" +
+                            " call from the main menu first.");
+         return;
+      }
+
       System.out.println("\nGetting tags within the area\n");
       int trials = 5;
-      
       HashSet<String> tagList = new HashSet<String>();
+
+      reader.open();
       
       for (int idx = 0; idx < trials; idx++) {
          Tag[] alienTags;
          try {
             alienTags = reader.getTagList();
             if (alienTags != null) {
+                  System.out.println("alienTags has " + alienTags.length + " elements on trial " + idx);
                for (Tag tag : alienTags) {
                   tagList.add(tag.toString());
                }
             }
+            else System.out.println("alienTags was null :(");
          } catch (AlienReaderException e) {
             System.out.println("Error retrieving tag list");
          }
@@ -156,6 +171,11 @@ public class Driver {
          Thread.sleep(1000);
       }
 
+      reader.close();
+      if (tagList.isEmpty()) {
+         System.out.println("1tag list is empty.");
+         return;
+      }
       db.addTagsToDatabase(tagList);
    }
 
