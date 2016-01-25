@@ -1,3 +1,4 @@
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Scanner;
@@ -10,9 +11,11 @@ public class Driver {
    ArrayList<AlienClass1Reader> readerList = new ArrayList<AlienClass1Reader>();
    NetworkDiscover networkDiscover;
 
-   public static void main(String[] args) {
+   public static void main(String[] args) throws UnknownHostException, AlienReaderException, InterruptedException {
       Scanner scan = new Scanner(System.in);
-      AlienClass1Reader reader = null;
+      AlienController controller = new AlienController("192.168.2.3", 23, "alien", "password");
+      controller.initializeReader();
+      AlienClass1Reader reader = controller.getReader();
       int choice;
       
       Database db = new Database();
@@ -22,7 +25,7 @@ public class Driver {
             switch (choice) {
                case 0:  System.exit(0);
                         break;
-               case 1:  reader = discoverReader(scan);
+               case 1:  reader = discoverReader(reader, scan);
                         break;
                case 2:  getTagsAndUpdateDatabase(reader, db);
                         break;
@@ -48,8 +51,9 @@ public class Driver {
       }
       reader.open();
       System.out.println("Entering reader communication mode ('q' to quit)");
+      scan.nextLine();
       do {
-         System.out.println("\nAlien>");
+         System.out.print("\nAlien> ");
          String line = scan.nextLine();
          if (line.equals("q")) break;
          System.out.println(reader.doReaderCommand(line));
@@ -59,8 +63,12 @@ public class Driver {
       reader.close();
    }
 
-
-   private static AlienClass1Reader discoverReader(Scanner scan) {
+   private static AlienClass1Reader discoverReader(AlienClass1Reader oldReader, Scanner scan) throws AlienReaderException {
+      if (oldReader != null) {
+         System.out.println("Reader has already been configured!");
+         System.out.println("Reader info: " + oldReader.getInfo());
+         return oldReader;
+      }
       AlienClass1Reader reader = new AlienClass1Reader();
       
       System.out.print("Enter the COM number of the serial port: ");
@@ -82,20 +90,7 @@ public class Driver {
       } catch (AlienReaderException e) {
          e.printStackTrace();
       }
-//      } catch (AlienReaderConnectionRefusedException e) {
-//         // TODO Auto-generated catch block
-//         e.printStackTrace();
-//      } catch (AlienReaderNotValidException e) {
-//         // TODO Auto-generated catch block
-//         e.printStackTrace();
-//      } catch (AlienReaderTimeoutException e) {
-//         // TODO Auto-generated catch block
-//         e.printStackTrace();
-//      } catch (AlienReaderConnectionException e) {
-//         // TODO Auto-generated catch block
-//         e.printStackTrace();
-//      }
-      
+
       return reader;
    }
 
@@ -115,10 +110,9 @@ public class Driver {
       return scan.nextInt();
    }
    
-   
    // Get unique list of tags after X number of trials and add to database
    // This will not update previous records of database, just add new entries
-   public static void getTagsAndUpdateDatabase(AlienClass1Reader reader, Database db) {
+   public static void getTagsAndUpdateDatabase(AlienClass1Reader reader, Database db) throws InterruptedException, AlienReaderException {
       System.out.println("\nGetting tags within the area\n");
       int trials = 5;
       
@@ -135,10 +129,11 @@ public class Driver {
             }
          } catch (AlienReaderException e) {
             System.out.println("Error retrieving tag list");
-            System.exit(-1);
          }
+         reader.clearTagList();
+         Thread.sleep(1000);
       }
-      
+
       db.addTagsToDatabase(tagList);
    }
 
