@@ -13,9 +13,7 @@ public class Driver {
 
    public static void main(String[] args) throws UnknownHostException, AlienReaderException, InterruptedException {
       Scanner scan = new Scanner(System.in);
-      AlienController controller = new AlienController("192.168.2.3", 23, "alien", "password");
-      controller.initializeReader();
-      AlienClass1Reader reader = controller.getReader();
+      AlienClass1Reader reader = null;
       int choice;
       
       Database db = new Database();
@@ -63,32 +61,56 @@ public class Driver {
       reader.close();
    }
 
-   private static AlienClass1Reader discoverReader(AlienClass1Reader oldReader, Scanner scan) throws AlienReaderException {
+   private static AlienClass1Reader discoverReader(AlienClass1Reader oldReader, Scanner scan) throws AlienReaderException, UnknownHostException {
+      AlienController controller;
+      AlienClass1Reader reader;
+      String ipAddr, username, psswd;
+      int portNum;
+      
       if (oldReader != null) {
          System.out.println("Reader has already been configured!");
          System.out.println("Reader info: " + oldReader.getInfo());
          return oldReader;
       }
-      AlienClass1Reader reader = new AlienClass1Reader();
+      scan.nextLine();
+      System.out.println("Enter the LAN info of the reader");
+      System.out.print("IP: ");
+      ipAddr = scan.nextLine();
+      System.out.print("Port: ");
+      portNum = Integer.parseInt(scan.nextLine().trim());
       
-      System.out.print("Enter the COM number of the serial port: ");
+      System.out.println("Enter the user credentials (default is alien/password)");
+      System.out.print("Username: ");
+      username = scan.nextLine();
+      System.out.print("Password: ");
+      psswd = scan.nextLine();
       
-      reader.setConnection("COM" + scan.nextInt());
-//      System.out.println();
-      try {
-         reader.open();
-         reader.clearTagList();
-         
-         // Establish behavioral parameters
-         reader.setAutoMode(AlienClass1Reader.OFF);
-         reader.setRFLevel(AlienController.RF_LEVEL);
-         reader.setTagMask(AlienController.tagMask);
-         reader.setTagListFormat(AlienClass1Reader.TEXT_FORMAT);
-         reader.setTagStreamFormat(AlienClass1Reader.TEXT_FORMAT);
-         reader.setTagListMillis(AlienClass1Reader.ON);
-         
-      } catch (AlienReaderException e) {
-         e.printStackTrace();
+      // Example arguments: 192.168.0.106, 23, alien, password
+      controller = new AlienController(ipAddr, portNum, username, psswd);
+      controller.initializeReader();
+      reader = controller.getReader();
+      
+//      reader.setConnection("COM" + scan.nextInt());
+////      System.out.println();
+//      try {
+//         reader.open();
+//         reader.clearTagList();
+//         
+//         // Establish behavioral parameters
+//         reader.setAutoMode(AlienClass1Reader.OFF);
+//         reader.setRFLevel(AlienController.RF_LEVEL);
+//         reader.setTagMask(AlienController.tagMask);
+//         reader.setTagListFormat(AlienClass1Reader.TEXT_FORMAT);
+//         reader.setTagStreamFormat(AlienClass1Reader.TEXT_FORMAT);
+//         reader.setTagListMillis(AlienClass1Reader.ON);
+//         
+//      } catch (AlienReaderException e) {
+//         e.printStackTrace();
+//      }
+      System.out.println("Successful connection!");
+      System.out.print("View reader info? [y/n]: ");
+      if (scan.nextLine().trim().equalsIgnoreCase("y")) {
+         System.out.println("Reader info: " + reader.getInfo());
       }
 
       return reader;
