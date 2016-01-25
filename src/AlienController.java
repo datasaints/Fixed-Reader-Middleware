@@ -13,8 +13,8 @@ public class AlienController {
    private String username;
    private String password;
 
-   final static int RF_LEVEL = 167;
-   static String tagMask = "E200 XXXX XXXX XXXX XXXX XXXX";
+   private int RF_LEVEL = 300; // 167;
+   private String tagMask = "E200 XXXX XXXX XXXX XXXX XXXX";
 
    /**
    * Constructor
@@ -50,7 +50,7 @@ public class AlienController {
    // Establish behavioral parameters
       reader.setAutoMode(AlienClass1Reader.OFF);
       reader.setRFLevel(RF_LEVEL);
-      reader.setTagMask(tagMask);
+//      reader.setTagMask(tagMask);
       reader.setTagListFormat(AlienClass1Reader.TEXT_FORMAT);
       reader.setTagStreamFormat(AlienClass1Reader.TEXT_FORMAT);
       reader.setTagListMillis(AlienClass1Reader.ON);
