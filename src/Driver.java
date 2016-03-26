@@ -12,10 +12,11 @@ import com.alien.enterpriseRFID.reader.AlienReaderException;
 import com.alien.enterpriseRFID.tags.Tag;
 
 public class Driver {
-   ArrayList<AlienClass1Reader> readerList = new ArrayList<AlienClass1Reader>();
-//   NetworkDiscover networkDiscover;
+   static ArrayList<AlienController> readerList = new ArrayList<AlienController>();
+   NetworkDiscover networkDiscover;
 
    public static void main(String[] args) throws UnknownHostException, AlienReaderException, InterruptedException {
+      NetworkDiscover netDiscover = new NetworkDiscover();
       Scanner scan = new Scanner(System.in);
       AlienClass1Reader reader = null;
       int choice;

@@ -104,7 +104,6 @@ public class Database {
    public HashMap<String, String> getItemInfoById(String tagID) {
       ResultSet set = null;
       HashMap<String, String> itemInfo = new HashMap<String, String>();
-      int idx = 1;
 
       try {
          statement = connection.createStatement();
@@ -150,5 +149,14 @@ public class Database {
          e.printStackTrace();
       }
       System.out.println("Finished updating");
+   }
+
+   public ResultSet getReaderProfile(String readerName) {
+      ResultSet set = null;
+
+      //Query database for reader profile by the identifier readerName
+
+      //assign set to ResultSet from that query, if none exists return null
+      return set;
    }
 }
