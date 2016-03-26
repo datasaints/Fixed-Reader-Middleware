@@ -1,5 +1,9 @@
+import java.io.IOException;
 import java.net.UnknownHostException;
+import java.sql.Date;
+import java.sql.Time;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Scanner;
 
@@ -15,7 +19,7 @@ public class Driver {
       Scanner scan = new Scanner(System.in);
       AlienClass1Reader reader = null;
       int choice;
-      
+
       Database db = new Database();
 
       while ((choice = printMainMenu(scan)) != 0) {
@@ -25,7 +29,8 @@ public class Driver {
                         break;
                case 1:  reader = discoverReader(reader, scan);
                         break;
-               case 2:  getTagsAndUpdateDatabase(reader, db);
+               case 2:  //getTagsAndUpdateDatabase(reader, db);
+            	   		transactionDemoMode(reader, db);
                         break;
                case 3:  db.getRecentItems();
                         break;
@@ -33,7 +38,7 @@ public class Driver {
                         break;
                default: System.out.println("Invalid Option");
             }
-         } catch (AlienReaderException e) {
+         } catch (Exception e) {
             e.printStackTrace();
          }
       }
@@ -66,7 +71,7 @@ public class Driver {
       AlienClass1Reader reader;
       String ipAddr, username, psswd;
       int portNum;
-      
+
       if (oldReader != null) {
          System.out.println("Reader has already been configured!");
          System.out.println("Reader info: " + oldReader.getInfo());
@@ -84,24 +89,24 @@ public class Driver {
       ipAddr = scan.nextLine();
       System.out.print("Port: ");
       portNum = Integer.parseInt(scan.nextLine().trim());
-      
+
       System.out.println("Enter the user credentials (default is alien/password)");
       System.out.print("Username: ");
       username = scan.nextLine();
       System.out.print("Password: ");
       psswd = scan.nextLine();
-      
+
       // Example arguments: 192.168.0.106, 23, alien, password
       controller = new AlienController(ipAddr, portNum, username, psswd);
       controller.initializeReader();
       reader = controller.getReader();
-      
+
 //      reader.setConnection("COM" + scan.nextInt());
 ////      System.out.println();
 //      try {
 //         reader.open();
 //         reader.clearTagList();
-//         
+//
 //         // Establish behavioral parameters
 //         reader.setAutoMode(AlienClass1Reader.OFF);
 //         reader.setRFLevel(AlienController.RF_LEVEL);
@@ -109,7 +114,7 @@ public class Driver {
 //         reader.setTagListFormat(AlienClass1Reader.TEXT_FORMAT);
 //         reader.setTagStreamFormat(AlienClass1Reader.TEXT_FORMAT);
 //         reader.setTagListMillis(AlienClass1Reader.ON);
-//         
+//
 //      } catch (AlienReaderException e) {
 //         e.printStackTrace();
 //      }
@@ -123,6 +128,8 @@ public class Driver {
    }
 
    private static int printMainMenu(Scanner scan) {
+      int selection;
+
       System.out.println();
       System.out.println("============================");
       System.out.println("|           MENU           |");
@@ -135,7 +142,13 @@ public class Driver {
       System.out.println("============================");
       System.out.print("Select an option: ");
 
-      return Integer.parseInt(scan.nextLine().trim());
+      try {
+
+         selection = Integer.parseInt(scan.nextLine().trim());
+      } catch (Exception e) {
+         selection = 99;
+      }
+      return selection;
    }
 
    // Get unique list of tags after X number of trials and add to database
@@ -152,7 +165,7 @@ public class Driver {
       HashSet<String> tagList = new HashSet<String>();
 
       reader.open();
-      
+
       for (int idx = 0; idx < trials; idx++) {
          Tag[] alienTags;
          try {
@@ -179,4 +192,70 @@ public class Driver {
       db.addTagsToDatabase(tagList);
    }
 
+   // Get unique list of tags after X number of trials and add to database
+   // This will not update previous records of database, just add new entries
+   public static void transactionDemoMode(AlienClass1Reader reader, Database db) throws InterruptedException, AlienReaderException, IOException {
+      if (reader == null) {
+         System.out.println("Reader has not been set. Perform a 'Connect Reader'" +
+                            " call from the main menu first.");
+         return;
+      }
+
+      System.out.println("\nEntering transaction mode\n");
+
+      reader.open();
+
+      int count = 0;
+      while (count < 10) {
+	      HashSet<String> tagList = new HashSet<String>();
+         Tag[] alienTags;
+         long start = System.currentTimeMillis();
+         String transactionTime;
+
+         while (System.currentTimeMillis() - start < 10000) {
+            try {
+               alienTags = reader.getTagList();
+               if (alienTags != null) {
+                  for (Tag tag : alienTags) {
+                     if (!tagList.contains(tag.toString()))
+                        tagList.add(tag.toString());
+                  }
+               }
+            } catch (AlienReaderException e) {
+               System.out.println("Error retrieving tag list");
+            }
+            reader.clearTagList();
+         }
+
+         if (tagList.isEmpty())
+            continue;
+         else
+            System.out.println("RFID tag(s) detected");
+
+         for (String tagString : tagList) {
+            System.out.println("Pulling information for tag: " + tagString);
+            //pull database information for that item
+            HashMap<String, String> itemInfo = db.getItemInfoById(tagString);
+
+            //check which way it should be updated
+            if (itemInfo.get("CheckOut") == null || itemInfo.get("CheckOut").isEmpty()) {
+               System.out.println("Checking the item out");
+               transactionTime = "'"+(new Date(System.currentTimeMillis())).toString()
+                     + " " + (new Time(System.currentTimeMillis())).toString()+"'";
+               db.updateItemFieldById(tagString, "CheckOut", transactionTime);
+               db.updateItemFieldById(tagString, "CheckIn", "NULL");
+            }
+            else {
+               System.out.println("Checking the item in");
+               transactionTime = "'"+(new Date(System.currentTimeMillis())).toString()
+                     + " " + (new Time(System.currentTimeMillis())).toString()+"'";
+               db.updateItemFieldById(tagString, "CheckIn", transactionTime);
+               db.updateItemFieldById(tagString, "CheckOut", "NULL");
+            }
+         }
+         count++;
+      }
+
+      reader.close();
+   }
 }
