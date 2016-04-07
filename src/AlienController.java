@@ -9,18 +9,13 @@ import com.alien.enterpriseRFID.reader.*;
  * readers.
  *
  */
-public class AlienController {
-   private AlienClass1Reader reader;
+public class AlienController extends AlienClass1Reader {
+//   public static int nextReaderNumber = 1;
 
-   private String ipAddress;
-   private int portNumber;
-   private String username;
-   private String password;
-   public static int nextReaderNumber = 1;
-
-   public final static int RF_LEVEL = 300; // Max value for RF level is 315, set in tenthes of dB. Represents power to the antenna(s).
-   public final static String tagMask = "E200 XXXX XXXX XXXX XXXX XXXX";
-   private final static String defUserName = "alien", defPassword = "password";
+   public final static int DEFAULT_RF_LEVEL = 300; // Max value for RF level is 315, set in tenthes of dB. Represents power to the antenna(s).
+   public final static String DEFAULT_TAG_MASK = "E200 XXXX XXXX XXXX XXXX XXXX";
+   private final static String DEFAULT_USERNAME = "alien", 
+         DEFAULT_PASSWORD = "password";
 
    public AlienController(String ipAddress, int portNumber) {
       this(ipAddress, portNumber, defUserName, defPassword);
@@ -34,11 +29,9 @@ public class AlienController {
    * @param password
    */
    public AlienController(String ipAddress, int portNumber, String username, String password) {
-      this.ipAddress = ipAddress;
-      this.portNumber = portNumber;
-      this.username = username;
-      this.password = password;
-      reader = new AlienClass1Reader(ipAddress, portNumber);
+      super(ipAddress, portNumber);
+      this.setUsername(username);
+      this.setPassword(password);
    }
 
    /**
@@ -48,11 +41,13 @@ public class AlienController {
     * AlienController constructor.
     *
     * @param discoveredReader AlienClass1Reader returned from NetworkDiscover.getReader()
+    * @throws AlienReaderException 
     */
-   public AlienController(AlienClass1Reader discoveredReader) {
-      reader = discoveredReader;
-      this.username = defUserName;
-      this.password = defPassword;
+   public AlienController(AlienClass1Reader discoveredReader) throws AlienReaderException {
+      this(discoveredReader.getIPAddress(), 
+            discoveredReader.getCommandPort(),
+            discoveredReader.getUsername(),
+            discoveredReader.getPassword());
 
       //Possibly add check to see if reader number is
       //if(discoveredReader.getReaderNumber() == 255)
@@ -65,30 +60,30 @@ public class AlienController {
    * @throws UnknownHostException
    */
    public void initializeReader() throws UnknownHostException, AlienReaderException {
-      // Establish user parameters
-      reader.setUsername(username);
-      reader.setPassword(password);
+      // Establish user parameters *no longer needed
+//      this.setUsername(username);
+//      this.setPassword(password);
 
       // Establish connection and clear any initial tags read
-      reader.open();
-      reader.clearTagList();
+      this.open();
+      this.clearTagList();
 
       // Set reader identifiers
-      reader.setReaderNumber(nextReaderNumber);
-      reader.setReaderName("AlienReader" + nextReaderNumber++);
+//      this.setReaderNumber(nextReaderNumber);
+//      this.setReaderName("AlienReader" + nextReaderNumber++);
 
       // Establish behavioral parameters
-      reader.setAutoMode(AlienClass1Reader.OFF);
-      reader.setRFLevel(RF_LEVEL);
-//      reader.setTagMask(tagMask);
-      reader.setTagListFormat(AlienClass1Reader.TEXT_FORMAT);
-      reader.setTagStreamFormat(AlienClass1Reader.TEXT_FORMAT);
-      reader.setTagListMillis(AlienClass1Reader.ON);
+      this.setAutoMode(AlienClass1Reader.OFF);
+      this.setRFLevel(DEFAULT_RF_LEVEL);
+//      this.setTagMask(tagMask);
+      this.setTagListFormat(AlienClass1Reader.TEXT_FORMAT);
+      this.setTagStreamFormat(AlienClass1Reader.TEXT_FORMAT);
+      this.setTagListMillis(AlienClass1Reader.ON);
    }
 
    // Return reader
    public AlienClass1Reader getReader() {
-      return this.reader;
+      return this;
    }
 
    /**
@@ -102,8 +97,8 @@ public class AlienController {
       //Check to see if reader was opened successfully
 
       try {
-         reader.setReaderUsername(newUserName);
-         reader.setReaderPassword(newPassword);
+         this.setReaderUsername(newUserName);
+         this.setReaderPassword(newPassword);
       } catch (AlienReaderException e) {
          // TODO Auto-generated catch block
          e.printStackTrace();

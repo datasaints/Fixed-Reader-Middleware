@@ -27,6 +27,7 @@ class NetworkDiscover implements DiscoveryListener {
          e.printStackTrace();
       }
 
+/*
       try {
          //Spin while waiting for readers
          while (service.isRunning()) {
@@ -35,7 +36,7 @@ class NetworkDiscover implements DiscoveryListener {
       } catch (InterruptedException e) {
          // TODO Auto-generated catch block
          e.printStackTrace();
-      }
+      } */
    }
 
    /**

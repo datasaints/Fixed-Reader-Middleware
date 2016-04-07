@@ -16,7 +16,7 @@ public class Driver {
    NetworkDiscover networkDiscover;
 
    public static void main(String[] args) throws UnknownHostException, AlienReaderException, InterruptedException {
-      NetworkDiscover netDiscover = new NetworkDiscover();
+      // NetworkDiscover netDiscover = new NetworkDiscover();
       Scanner scan = new Scanner(System.in);
       AlienClass1Reader reader = null;
       int choice;
@@ -45,6 +45,12 @@ public class Driver {
       }
 
       System.out.println("Exiting...");
+   }
+
+   public static void main2(String[] args) throws UnknownHostException, AlienReaderException, InterruptedException {
+
+      // Create reader profile
+      // parse attenas
    }
 
    private static void sendReaderCommand(AlienClass1Reader reader, Scanner scan) throws AlienReaderException {

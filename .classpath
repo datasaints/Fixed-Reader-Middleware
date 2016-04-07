@@ -1,17 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
-	<classpathentry kind="lib" path="lib/alien/AlienRFID.jar">
+	<classpathentry kind="lib" path="lib/alien/AlienRFID.jar" sourcepath="lib/alien/AlienRFID.jar">
 		<attributes>
-			<attribute name="javadoc_location" value="jar:platform:/resource/Fixed-Reader-Middleware/lib/alien/doc/index.html!/"/>
+			<attribute name="javadoc_location" value="file:/Users/charles/Workspace/AlienLib/doc/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/mysql/mysql-connector-java-5.1.38-bin.jar">
+	<classpathentry kind="lib" path="lib/mysql/mysql-connector-java-5.1.38-bin.jar" sourcepath="lib/mysql/mysql-connector-java-5.1.38-bin.jar">
 		<attributes>
 			<attribute name="javadoc_location" value="jar:platform:/resource/Fixed-Reader-Middleware/lib/mysql/docs/connector-j.html!/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/alien/comm.jar"/>
-	<classpathentry kind="output" path="bin"/>
+	<classpathentry kind="lib" path="lib/alien/comm.jar" sourcepath="lib/alien/comm.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/Users/charles/Workspace/AlienLib/doc/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="output" path="target/classes"/>
 </classpath>
