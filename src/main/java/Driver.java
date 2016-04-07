@@ -1,3 +1,6 @@
+package main.java;
+
+
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.sql.Date;
@@ -11,6 +14,14 @@ import com.alien.enterpriseRFID.reader.AlienClass1Reader;
 import com.alien.enterpriseRFID.reader.AlienReaderException;
 import com.alien.enterpriseRFID.tags.Tag;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import static spark.Spark.*;
+import spark.ModelAndView;
+import static spark.Spark.get;
+
+
 public class Driver {
    static ArrayList<AlienController> readerList = new ArrayList<AlienController>();
    NetworkDiscover networkDiscover;
@@ -21,6 +32,8 @@ public class Driver {
       AlienClass1Reader reader = null;
       int choice;
 
+      port(5000);
+      get("/hello", (req, res) -> "Hello World");
       Database db = new Database();
 
       while ((choice = printMainMenu(scan)) != 0) {
@@ -45,12 +58,6 @@ public class Driver {
       }
 
       System.out.println("Exiting...");
-   }
-
-   public static void main2(String[] args) throws UnknownHostException, AlienReaderException, InterruptedException {
-
-      // Create reader profile
-      // parse attenas
    }
 
    private static void sendReaderCommand(AlienClass1Reader reader, Scanner scan) throws AlienReaderException {

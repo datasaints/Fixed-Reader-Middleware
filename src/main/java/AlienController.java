@@ -1,4 +1,4 @@
-
+package main.java;
 
 import java.net.UnknownHostException;
 
@@ -18,7 +18,7 @@ public class AlienController extends AlienClass1Reader {
          DEFAULT_PASSWORD = "password";
 
    public AlienController(String ipAddress, int portNumber) {
-      this(ipAddress, portNumber, defUserName, defPassword);
+      this(ipAddress, portNumber, DEFAULT_USERNAME, DEFAULT_PASSWORD);
    }
 
    /**

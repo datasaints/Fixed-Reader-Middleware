@@ -1,3 +1,5 @@
+package main.java;
+
 import java.sql.*;
 import java.util.HashMap;
 import java.util.HashSet;

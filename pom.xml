@@ -11,6 +11,27 @@
       <artifactId>spark-core</artifactId>
       <version>2.2</version>
     </dependency>
+    <dependency>
+        <groupId>com.alien</groupId>
+        <artifactId>com.alien</artifactId>
+        <version>1.0</version>
+        <scope>system</scope>
+        <systemPath>${project.basedir}/lib/alien/AlienRFID.jar</systemPath>
+    </dependency>
+    <dependency>
+        <groupId>com.comm</groupId>
+        <artifactId>com.comm</artifactId>
+        <version>1.0</version>
+        <scope>system</scope>
+        <systemPath>${project.basedir}/lib/alien/comm.jar</systemPath>
+    </dependency>
+    <dependency>
+        <groupId>com.mysql</groupId>
+        <artifactId>com.mysql</artifactId>
+        <version>1.0</version>
+        <scope>system</scope>
+        <systemPath>${project.basedir}/lib/mysql/mysql-connector-java-5.1.38-bin.jar</systemPath>
+    </dependency>
   </dependencies>
   <build>
     <plugins>

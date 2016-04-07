@@ -1,8 +1,11 @@
+package main.java;
+
 import com.alien.enterpriseRFID.discovery.AlienDiscoverySocketException;
 import com.alien.enterpriseRFID.discovery.AlienDiscoveryUnknownReaderException;
 import com.alien.enterpriseRFID.discovery.DiscoveryItem;
 import com.alien.enterpriseRFID.discovery.DiscoveryListener;
 import com.alien.enterpriseRFID.discovery.NetworkDiscoveryListenerService;
+import com.alien.enterpriseRFID.reader.AlienReaderException;
 
 /**
  * Starts a NetworkDiscoveryService to listen for Alien Reader
@@ -63,6 +66,9 @@ class NetworkDiscover implements DiscoveryListener {
       try {
          Driver.readerList.add(new AlienController(discoveryItem.getReader()));
       } catch (AlienDiscoveryUnknownReaderException e) {
+         // TODO Auto-generated catch block
+         e.printStackTrace();
+      } catch (AlienReaderException e) {
          // TODO Auto-generated catch block
          e.printStackTrace();
       }
