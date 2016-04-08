@@ -7,6 +7,7 @@ import com.alien.enterpriseRFID.discovery.AlienDiscoveryUnknownReaderException;
 import com.alien.enterpriseRFID.discovery.DiscoveryItem;
 import com.alien.enterpriseRFID.discovery.DiscoveryListener;
 import com.alien.enterpriseRFID.discovery.NetworkDiscoveryListenerService;
+import com.alien.enterpriseRFID.reader.AlienClass1Reader;
 import com.alien.enterpriseRFID.reader.AlienReaderException;
 
 /**
@@ -54,6 +55,7 @@ class NetworkDiscover implements DiscoveryListener {
    @Override
    public void readerAdded(DiscoveryItem discoveryItem){
       System.out.println("Reader Added:\n" + discoveryItem.toString());
+      
 
       //Make sure that you use the AlienController class instead of the AlienClass1Reader, DONT use the DiscoveryItem.getReader unless it is for constructing a AlienController
 
@@ -66,7 +68,8 @@ class NetworkDiscover implements DiscoveryListener {
       //Finally, add the reader to the readerlist in Driver
 
       try {
-         Driver.readerList.add(new AlienReader(discoveryItem.getReader()));
+         AlienClass1Reader reader = discoveryItem.getReader();
+         Driver.arManager.addReader(reader.getIPAddress(), new AlienReader(reader));
       } catch (AlienDiscoveryUnknownReaderException e) {
          // TODO Auto-generated catch block
          e.printStackTrace();
