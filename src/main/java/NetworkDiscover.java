@@ -1,5 +1,7 @@
 package main.java;
 
+import java.net.UnknownHostException;
+
 import com.alien.enterpriseRFID.discovery.AlienDiscoverySocketException;
 import com.alien.enterpriseRFID.discovery.AlienDiscoveryUnknownReaderException;
 import com.alien.enterpriseRFID.discovery.DiscoveryItem;
@@ -64,11 +66,14 @@ class NetworkDiscover implements DiscoveryListener {
       //Finally, add the reader to the readerlist in Driver
 
       try {
-         Driver.readerList.add(new AlienController(discoveryItem.getReader()));
+         Driver.readerList.add(new AlienReader(discoveryItem.getReader()));
       } catch (AlienDiscoveryUnknownReaderException e) {
          // TODO Auto-generated catch block
          e.printStackTrace();
       } catch (AlienReaderException e) {
+         // TODO Auto-generated catch block
+         e.printStackTrace();
+      } catch (UnknownHostException e) {
          // TODO Auto-generated catch block
          e.printStackTrace();
       }

@@ -9,7 +9,7 @@ import com.alien.enterpriseRFID.reader.*;
  * readers.
  *
  */
-public class AlienController extends AlienClass1Reader {
+public class AlienReader extends AlienClass1Reader implements Runnable {
 //   public static int nextReaderNumber = 1;
 
    public final static int DEFAULT_RF_LEVEL = 300; // Max value for RF level is 315, set in tenthes of dB. Represents power to the antenna(s).
@@ -17,7 +17,7 @@ public class AlienController extends AlienClass1Reader {
    private final static String DEFAULT_USERNAME = "alien", 
          DEFAULT_PASSWORD = "password";
 
-   public AlienController(String ipAddress, int portNumber) {
+   public AlienReader(String ipAddress, int portNumber) throws UnknownHostException, AlienReaderException {
       this(ipAddress, portNumber, DEFAULT_USERNAME, DEFAULT_PASSWORD);
    }
 
@@ -27,11 +27,12 @@ public class AlienController extends AlienClass1Reader {
    * @param portNumber
    * @param username
    * @param password
+    * @throws AlienReaderException 
+    * @throws UnknownHostException 
    */
-   public AlienController(String ipAddress, int portNumber, String username, String password) {
+   public AlienReader(String ipAddress, int portNumber, String username, String password) throws UnknownHostException, AlienReaderException {
       super(ipAddress, portNumber);
-      this.setUsername(username);
-      this.setPassword(password);
+      initializeReader(username, password);
    }
 
    /**
@@ -42,8 +43,9 @@ public class AlienController extends AlienClass1Reader {
     *
     * @param discoveredReader AlienClass1Reader returned from NetworkDiscover.getReader()
     * @throws AlienReaderException 
+    * @throws UnknownHostException 
     */
-   public AlienController(AlienClass1Reader discoveredReader) throws AlienReaderException {
+   public AlienReader(AlienClass1Reader discoveredReader) throws AlienReaderException, UnknownHostException {
       this(discoveredReader.getIPAddress(), 
             discoveredReader.getCommandPort(),
             discoveredReader.getUsername(),
@@ -59,10 +61,10 @@ public class AlienController extends AlienClass1Reader {
    * @throws AlienReaderException
    * @throws UnknownHostException
    */
-   public void initializeReader() throws UnknownHostException, AlienReaderException {
+   public void initializeReader(String username, String password) throws UnknownHostException, AlienReaderException {
       // Establish user parameters *no longer needed
-//      this.setUsername(username);
-//      this.setPassword(password);
+      this.setUsername(username);
+      this.setPassword(password);
 
       // Establish connection and clear any initial tags read
       this.open();
@@ -81,11 +83,6 @@ public class AlienController extends AlienClass1Reader {
       this.setTagListMillis(AlienClass1Reader.ON);
    }
 
-   // Return reader
-   public AlienClass1Reader getReader() {
-      return this;
-   }
-
    /**
     *
     * @param newUserName
@@ -100,9 +97,27 @@ public class AlienController extends AlienClass1Reader {
          this.setReaderUsername(newUserName);
          this.setReaderPassword(newPassword);
       } catch (AlienReaderException e) {
-         // TODO Auto-generated catch block
          e.printStackTrace();
       }
+   }
+
+   @Override
+   public void run() {
+      while (true) {
+         try {
+            System.out.println("Reader of " + this.getIPAddress() + " is running");
+            
+            Thread.sleep(1000);
+         } catch (AlienReaderException e) {
+            e.printStackTrace();
+            break;
+         } catch (InterruptedException e) {
+            e.printStackTrace();
+            break;
+         }
+      }
+      
+      System.out.println("thread done");
    }
 
 }

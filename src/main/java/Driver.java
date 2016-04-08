@@ -8,7 +8,9 @@ import java.sql.Time;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 
 import com.alien.enterpriseRFID.reader.AlienClass1Reader;
 import com.alien.enterpriseRFID.reader.AlienReaderException;
@@ -23,19 +25,59 @@ import static spark.Spark.get;
 
 
 public class Driver {
-   static ArrayList<AlienController> readerList = new ArrayList<AlienController>();
+   static ArrayList<AlienReader> readerList = new ArrayList<AlienReader>();
    NetworkDiscover networkDiscover;
+   static Database db = new Database();
+   static Scanner scan = new Scanner(System.in);
 
+   @SuppressWarnings("resource")
    public static void main(String[] args) throws UnknownHostException, AlienReaderException, InterruptedException {
       // NetworkDiscover netDiscover = new NetworkDiscover();
-      Scanner scan = new Scanner(System.in);
-      AlienClass1Reader reader = null;
+      
       int choice;
 
-      port(5000);
+//      port(Integer.valueOf(System.getenv("PORT")));
+      port(3000);
+      
+      
+      // http://sparkjava.com/documentation.html
       get("/hello", (req, res) -> "Hello World");
-      Database db = new Database();
+      
+      post("/addReader", (req, res) -> {
+         String ip = req.queryParams("ip");
+         int port = Integer.valueOf(req.queryParams("port"));
+         String username = req.queryParams("username");
+         String password = req.queryParams("password");
+         
+         AlienReader reader = null;
+         try {
+            reader = new AlienReader(ip, port, username, password);
+         }
+         catch (Exception e) {
+            res.status(400);
+            return "Error: " + e.toString();
+         }
 
+         readerList.add(reader);
+         res.status(200);
+         
+         Thread thread = new Thread(reader);
+         thread.start();
+         
+         return "succesfully discovered and added reader";
+      });
+      
+      post("/newReader", (req, res) -> {
+         String ip = req.queryParams("ip");
+         String name = req.queryParams("name");
+         return "";
+      });
+      
+      put("/updateReaders", (req, res) -> {
+         return "";
+      });
+      
+/*
       while ((choice = printMainMenu(scan)) != 0) {
          try {
             switch (choice) {
@@ -55,10 +97,12 @@ public class Driver {
          } catch (Exception e) {
             e.printStackTrace();
          }
-      }
+      }*/
 
       System.out.println("Exiting...");
    }
+   
+   
 
    private static void sendReaderCommand(AlienClass1Reader reader, Scanner scan) throws AlienReaderException {
       if (reader == null) {
@@ -81,7 +125,7 @@ public class Driver {
    }
 
    private static AlienClass1Reader discoverReader(AlienClass1Reader oldReader, Scanner scan) throws AlienReaderException, UnknownHostException {
-      AlienController controller;
+      AlienReader controller;
       AlienClass1Reader reader;
       String ipAddr, username, psswd;
       int portNum;
@@ -111,9 +155,9 @@ public class Driver {
       psswd = scan.nextLine();
 
       // Example arguments: 192.168.0.106, 23, alien, password
-      controller = new AlienController(ipAddr, portNum, username, psswd);
-      controller.initializeReader();
-      reader = controller.getReader();
+      controller = new AlienReader(ipAddr, portNum, username, psswd);
+      controller.initializeReader(username, psswd);
+      reader = controller;
 
 //      reader.setConnection("COM" + scan.nextInt());
 ////      System.out.println();
