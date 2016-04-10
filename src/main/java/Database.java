@@ -1,6 +1,7 @@
 package main.java;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -29,6 +30,34 @@ public class Database {
       }
    }
 
+   public ArrayList<ReaderProfile> getReaderProfiles() {
+	  ResultSet set = null;
+	  ArrayList<ReaderProfile> profiles = new ArrayList<ReaderProfile>;
+	  
+	  try {
+	         statement = connection.createStatement();
+	         String sql = "SELECT * FROM ReaderProfiles";
+	         set = statement.executeQuery(sql);
+	      } catch (SQLException e1) {
+	         System.out.println("Query execution error");
+	         System.exit(-1);
+	      }
+	  
+	  try {
+	         while (set.next()) {
+	        	 ReaderProfile entry = new ReaderProfile(set.getString("ID"), set.getString("Frequency"), set.getString("IP")); 
+	        	 profiles.add(entry);
+	         }
+
+	         set.close();
+	      } catch (SQLException e) {
+	         System.out.println("ResultSet iteration error");
+	         System.exit(-1);
+	      }
+	  
+	  return profiles;
+   }
+   
    public void getRecentItems() {
       ResultSet set = null;
       int idx = 1;

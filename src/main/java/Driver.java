@@ -26,7 +26,8 @@ import static spark.Spark.get;
 
 public class Driver {
    public static AlienReaderManager arManager = new AlienReaderManager();
-
+   public static ArrayList<ReaderProfile> dbProfiles = new ArrayList ArrayList<ReaderProfile>;
+   public static Database mainDatabase = null;
 
    public static void main(String[] args) throws UnknownHostException, AlienReaderException, InterruptedException {
       // port(Integer.valueOf(System.getenv("PORT")));
@@ -36,7 +37,41 @@ public class Driver {
 
       System.out.println("Exiting main...");
    }
-
+   
+   private static void sendReaderCommand(AlienReader reader, String cmd) throws AlienReaderException {
+	      if (reader == null) {
+	         System.out.println("Reader has not been set. Perform a 'Connect Reader'" +
+	                            " call from the main menu first.");
+	         return;
+	      }
+	      
+	      reader.open();
+	      reader.doReaderCommand(cmd);
+	      reader.close();
+   }
+   
+   private static void getUpdatedProfiles() {
+	   dbProfiles = mainDatabase.getReaderProfiles();
+   }
+   
+   /*
+    * Right now the only field to compare is frequency
+    * we need to figure out what else we need in the profiles
+    */
+   private static void updateReaders() {
+	   int i = 0;
+	   
+	   while (i < profiles.size()) {
+		   ReaderProfile dbReader = dbProfiles.get(i);
+		   ReaderProfile curReader = (arManager.getReaderByIP(dbReader.IP)).info;
+		   
+		   if (Integer.parseInt(dbReader.frequency) != Integer.parseInt(curReader.frequency)) {
+			   curReader.setFrequency(dbReader.frequency);
+			   //sendReaderCommand(arManager.getReaderByIP(dbReader.IP), "set frequency to " + dbReader.frequency);
+		   }	   
+		   i++;
+	   }
+   }
 
    private static void initializeRoutes() {
       // http://sparkjava.com/documentation.html
@@ -58,6 +93,7 @@ public class Driver {
          }
 
          arManager.addReader(reader.getIPAddress(), reader);
+         mainDatabase = reader.db;
          res.status(200);
 
          Thread thread = new Thread(reader);

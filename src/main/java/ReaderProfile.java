@@ -14,6 +14,11 @@ import com.alien.enterpriseRFID.discovery.AlienDiscoveryUnknownReaderException;
 public class ReaderProfile {
    //public class variables will be the fields of the reader profile table
 
+	private String ID = null;
+	private String frequency = null;
+	private String IP = null;
+	
+	
    /**
     * Main constructor, will check the database for a reader profile for
     * the reader with given name.
@@ -38,5 +43,25 @@ public class ReaderProfile {
     */
    public ReaderProfile(HashMap<String, String> values) {
 
+   }
+   
+   /**
+    * Constructor for making a profile according to a database
+    * reader profile entry. 
+    *
+    * @param values
+    */
+   public ReaderProfile(String ID, String frequency, String IP) {
+	   this.ID = ID;
+	   this.frequency = frequency;
+	   this.IP = IP;
+   }
+   
+   public ReaderProfile(String IP) {
+	   this.IP = IP;
+   }
+   
+   public void setFrequency(String freq) {
+	   this.frequency = freq;
    }
 }

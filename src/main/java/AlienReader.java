@@ -25,6 +25,7 @@ public class AlienReader extends AlienClass1Reader implements Runnable {
 
    private Database db = new Database(); // Different threads shouldn't share same connection
    private Thread thread = null;
+   private ReaderProfile info = null;
 
    public AlienReader(String ipAddress, int portNumber) throws UnknownHostException, AlienReaderException {
       this(ipAddress, portNumber, DEFAULT_USERNAME, DEFAULT_PASSWORD);
@@ -42,6 +43,7 @@ public class AlienReader extends AlienClass1Reader implements Runnable {
    public AlienReader(String ipAddress, int portNumber, String username, String password) throws UnknownHostException, AlienReaderException {
       super(ipAddress, portNumber);
       initializeReader(username, password);
+      info = new ReaderProfile(ipAddress);
    }
 
    /**
