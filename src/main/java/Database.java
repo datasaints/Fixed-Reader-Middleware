@@ -32,7 +32,7 @@ public class Database {
 
    public ArrayList<ReaderProfile> getReaderProfiles() {
 	  ResultSet set = null;
-	  ArrayList<ReaderProfile> profiles = new ArrayList<ReaderProfile>;
+	  ArrayList<ReaderProfile> profiles = new ArrayList<ReaderProfile>();
 	  
 	  try {
 	         statement = connection.createStatement();

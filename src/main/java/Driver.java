@@ -26,7 +26,7 @@ import static spark.Spark.get;
 
 public class Driver {
    public static AlienReaderManager arManager = new AlienReaderManager();
-   public static ArrayList<ReaderProfile> dbProfiles = new ArrayList ArrayList<ReaderProfile>;
+   public static ArrayList<ReaderProfile> dbProfiles = new ArrayList<ReaderProfile>();
    public static Database mainDatabase = null;
 
    public static void main(String[] args) throws UnknownHostException, AlienReaderException, InterruptedException {
