@@ -61,7 +61,7 @@ public class Driver {
    private static void updateReaders() {
 	   int i = 0;
 	   
-	   while (i < profiles.size()) {
+	   while (i < dbProfiles.size()) {
 		   ReaderProfile dbReader = dbProfiles.get(i);
 		   ReaderProfile curReader = (arManager.getReaderByIP(dbReader.IP)).info;
 		   
