@@ -202,5 +202,16 @@ public class AlienReader extends AlienClass1Reader implements Runnable {
    public Thread getThread() {
       return this.thread;
    }
+   
+   public void setProfile(ReaderProfile info) {
+	   this.info = info;
+   }
 
+   public ReaderProfile getProfile() {
+	   return this.info;
+   }
+   
+   public Database getDatabase() {
+	   return this.db;
+   }
 }
