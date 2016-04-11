@@ -63,10 +63,10 @@ public class Driver {
 	   
 	   while (i < dbProfiles.size()) {
 		   ReaderProfile dbReader = dbProfiles.get(i);
-		   ReaderProfile curReader = (arManager.getReaderByIP(dbReader.IP)).info;
+		   ReaderProfile curReader = (arManager.getReaderByIP(dbReader.getIP())).getProfile();
 		   
-		   if (Integer.parseInt(dbReader.frequency) != Integer.parseInt(curReader.frequency)) {
-			   curReader.setFrequency(dbReader.frequency);
+		   if (Integer.parseInt(dbReader.getFrequency()) != Integer.parseInt(curReader.getFrequency())) {
+			   curReader.setFrequency(dbReader.getFrequency());
 			   //sendReaderCommand(arManager.getReaderByIP(dbReader.IP), "set frequency to " + dbReader.frequency);
 		   }	   
 		   i++;
@@ -93,7 +93,7 @@ public class Driver {
          }
 
          arManager.addReader(reader.getIPAddress(), reader);
-         mainDatabase = reader.db;
+         mainDatabase = reader.getDatabase();
          res.status(200);
 
          Thread thread = new Thread(reader);

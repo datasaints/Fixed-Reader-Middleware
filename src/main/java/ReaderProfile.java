@@ -26,6 +26,7 @@ public class ReaderProfile {
     * @param readerName Name of the reader to search the database for
     * @throws AlienDiscoveryUnknownReaderException If reader profile does not exist in the database
     */
+	/*
    public ReaderProfile(String readerName) throws AlienDiscoveryUnknownReaderException {
       try {
          //Query database reader profile table for reader by name of 'readerName'
@@ -34,6 +35,7 @@ public class ReaderProfile {
          throw new AlienDiscoveryUnknownReaderException();
       }
    }
+   */
 
    /**
     * Constructor for adding a new reader that does not have an existing
@@ -63,5 +65,17 @@ public class ReaderProfile {
    
    public void setFrequency(String freq) {
 	   this.frequency = freq;
+   }
+   
+   public String getFrequency() {
+	   return this.frequency;
+   }
+   
+   public String getIP() {
+	   return this.IP;
+   }
+   
+   public String getID() {
+	   return this.ID;
    }
 }
