@@ -3,7 +3,7 @@ package main.java;
 import java.util.HashMap;
 
 
-
+// There should only ever be a single instance of AlienReaderManager
 public class AlienReaderManager {
 
    // Map of all alien readers, key by IP address, value of AlienReader
@@ -25,8 +25,12 @@ public class AlienReaderManager {
    }
 
    // Add new reader
+   /* Adding new readers will eventually be done in NetworkDiscover
+    * where it will call AlienReaderManager
+    */
    public void addReader(String ipAddress, AlienReader reader) {
       this.readerMap.put(ipAddress, reader);
+
    }
 
    // Remove current reader, returns true if removed

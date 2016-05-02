@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.sql.Date;
 import java.sql.Time;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -27,12 +28,19 @@ public class AlienReader extends AlienClass1Reader implements Runnable {
    private Thread thread = null;
    private ReaderProfile info = null;
 
+   /**
+    * Overloaded constructor. Will use default values for user name/password.
+    * @param ipAddress
+    * @param portNumber
+    * @throws UnknownHostException
+    * @throws AlienReaderException
+    */
    public AlienReader(String ipAddress, int portNumber) throws UnknownHostException, AlienReaderException {
       this(ipAddress, portNumber, DEFAULT_USERNAME, DEFAULT_PASSWORD);
    }
 
    /**
-   * Constructor
+   * Main constructor. All other constructors will eventually arrive here.
    * @param ipAddress
    * @param portNumber
    * @param username
@@ -112,12 +120,25 @@ public class AlienReader extends AlienClass1Reader implements Runnable {
 
    @Override
    public void run() {
+      ArrayList<String> tagList;
+      /* TODO:
+       * while condition should check against a flag/method inside of AlienReaderManager.java to see if it should continue normal operation (aka start stop)
+       * This will probably involve looking at AlienReaderManager using myIP as a key to check some running state list.
+       * Thread.stop() and the like have been deprecated so this is the proper way to stop the thread/runnable.
+       * for now just putting true for development
+       */
       while (true) {
          try {
-            System.out.println("Reader of " + this.getIPAddress() + " is running");
+            System.out.println("Reader of " + this.getIPAddress() + " is running.");
+            // Stay in smartTransactionMode until a transaction has occurred (someone walked in/out with inventory)
+            tagList = detectTransaction();
+            System.out.println("Reader of " + this.getIPAddress() + " just completed a transaction. Sanitizing data.");
 
-            transactionDemoMode();
+            System.out.println("Tags from last transaction:" + tagList.toString());
+            //check db for previous locations of tags in tagList
+            //update accordingly
 
+            //transactionDemoMode();
             Thread.sleep(1000);
          } catch (AlienReaderException e) {
             System.out.println(e);
@@ -134,10 +155,64 @@ public class AlienReader extends AlienClass1Reader implements Runnable {
       System.out.println("thread done");
    }
 
-   // TODO REVISE THIS CODE
-   public void transactionDemoMode() throws InterruptedException, AlienReaderException, IOException {
-      System.out.println("\nEntering transaction mode\n");
+   private ArrayList<String> detectTransaction() throws InterruptedException, AlienReaderException, IOException {
+      ArrayList<String> tagList = new ArrayList<String>(); // Final tag list to be returned and/or pushed to DB (should never be a large number)
+      Tag[] tags;
+      long readNewTagTime, nowTime;
+      System.out.println("Entering transaction mode\n");
 
+      // Clear any initial tags to start from a clean state
+      this.clearTagList();
+
+      /* TODO: Delete this reference comment
+       * If reader is in interactive mode, getTagList triggers a scan as well as report of tags
+       * if in automode, just returns current list of tags
+       *
+       * getTagList returns null if no tags were read
+       *
+       * Read for tags and sleep if none were read
+       */
+      while((tags = this.getTagList()) == null)
+         Thread.sleep(200); // TODO: test this value. want smallest number or no sleep at all if possible without too much system strain.
+
+      // At this point the reader has read one or more tags. A transaction is occurring. Record time of last new read (now).
+      readNewTagTime = System.currentTimeMillis();
+
+      //Add each tag that was just read to tagList
+      for (Tag tag : tags)
+         tagList.add(tag.toString());
+
+      while((nowTime = System.currentTimeMillis()) - readNewTagTime < 2000) { // TODO: test this time limit. too small/large a number is bad. probably enough time to push a cart through and not read another tag.
+         // Attempt to rescan and see if any new tags were read
+         try {
+            tags = this.getTagList();
+         } catch (AlienReaderException e) {
+            System.out.println("Error retrieving tag list");
+            e.printStackTrace();
+         }
+
+         if (tags != null) {
+            for (Tag tag : tags) {
+               if (!tagList.contains(tag.toString()))
+                  tagList.add(tag.toString());
+            }
+            readNewTagTime = nowTime;
+         }
+      }
+      // Transaction timer has finished, therefore construct initial list for DB transaction
+      // TODO: test if internal tag list only keeps unique tags or multiple instances of same tag
+      // If unique then we can remove the if statement and go straight to adding the tag string
+//      for (Tag tag : tags) {
+//         if (!tagList.contains(tag.toString()))
+//            tagList.add(tag.toString());
+//      }
+      return tagList;
+   }
+
+   public void transactionDemoMode() throws InterruptedException, AlienReaderException, IOException {
+
+
+      System.out.println("\nEntering demo transaction mode\n");
       this.clearTagList();
 
       int count = 0;
@@ -195,6 +270,10 @@ public class AlienReader extends AlienClass1Reader implements Runnable {
 
    }
 
+   /* Why do we need setThread and getThread?
+    * Thread management should be done by AlienReaderManager
+    * otherwise what is the point of it?
+    */
    public void setThread(Thread thread) {
       this.thread = thread;
    }
@@ -202,7 +281,7 @@ public class AlienReader extends AlienClass1Reader implements Runnable {
    public Thread getThread() {
       return this.thread;
    }
-   
+
    public void setProfile(ReaderProfile info) {
 	   this.info = info;
    }
@@ -210,7 +289,7 @@ public class AlienReader extends AlienClass1Reader implements Runnable {
    public ReaderProfile getProfile() {
 	   return this.info;
    }
-   
+
    public Database getDatabase() {
 	   return this.db;
    }

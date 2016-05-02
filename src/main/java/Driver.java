@@ -1,27 +1,10 @@
 package main.java;
 
 
-import java.io.IOException;
 import java.net.UnknownHostException;
-import java.sql.Date;
-import java.sql.Time;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Set;
-
-import com.alien.enterpriseRFID.reader.AlienClass1Reader;
 import com.alien.enterpriseRFID.reader.AlienReaderException;
-import com.alien.enterpriseRFID.tags.Tag;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-
 import static spark.Spark.*;
-import spark.ModelAndView;
-import static spark.Spark.get;
 
 
 public class Driver {
@@ -37,38 +20,38 @@ public class Driver {
 
       System.out.println("Exiting main...");
    }
-   
+
    private static void sendReaderCommand(AlienReader reader, String cmd) throws AlienReaderException {
 	      if (reader == null) {
 	         System.out.println("Reader has not been set. Perform a 'Connect Reader'" +
 	                            " call from the main menu first.");
 	         return;
 	      }
-	      
+
 	      reader.open();
 	      reader.doReaderCommand(cmd);
 	      reader.close();
    }
-   
+
    private static void getUpdatedProfiles() {
 	   dbProfiles = mainDatabase.getReaderProfiles();
    }
-   
+
    /*
     * Right now the only field to compare is frequency
     * we need to figure out what else we need in the profiles
     */
    private static void updateReaders() {
 	   int i = 0;
-	   
+
 	   while (i < dbProfiles.size()) {
 		   ReaderProfile dbReader = dbProfiles.get(i);
 		   ReaderProfile curReader = (arManager.getReaderByIP(dbReader.getIP())).getProfile();
-		   
+
 		   if (Integer.parseInt(dbReader.getFrequency()) != Integer.parseInt(curReader.getFrequency())) {
 			   curReader.setFrequency(dbReader.getFrequency());
 			   //sendReaderCommand(arManager.getReaderByIP(dbReader.IP), "set frequency to " + dbReader.frequency);
-		   }	   
+		   }
 		   i++;
 	   }
    }
@@ -97,7 +80,7 @@ public class Driver {
          res.status(200);
 
          Thread thread = new Thread(reader);
-         reader.setThread(thread);
+         reader.setThread(thread); // Why is this necessary?
          thread.start();
 
          return "succesfully discovered and added reader";
