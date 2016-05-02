@@ -46,7 +46,7 @@ public class Driver {
 
 	   while (i < dbProfiles.size()) {
 		   ReaderProfile dbReader = dbProfiles.get(i);
-		   ReaderProfile curReader = (arManager.getReaderByIP(dbReader.getIP())).getProfile();
+		   ReaderProfile curReader = arManager.getReaderByIP(dbReader.getIP()).getProfile();
 
 		   if (Integer.parseInt(dbReader.getFrequency()) != Integer.parseInt(curReader.getFrequency())) {
 			   curReader.setFrequency(dbReader.getFrequency());

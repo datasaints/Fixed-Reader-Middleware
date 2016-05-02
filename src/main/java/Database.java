@@ -33,7 +33,7 @@ public class Database {
    public ArrayList<ReaderProfile> getReaderProfiles() {
 	  ResultSet set = null;
 	  ArrayList<ReaderProfile> profiles = new ArrayList<ReaderProfile>();
-	  
+
 	  try {
 	         statement = connection.createStatement();
 	         String sql = "SELECT * FROM ReaderProfiles";
@@ -42,10 +42,10 @@ public class Database {
 	         System.out.println("Query execution error");
 	         System.exit(-1);
 	      }
-	  
+
 	  try {
 	         while (set.next()) {
-	        	 ReaderProfile entry = new ReaderProfile(set.getString("ID"), set.getString("Frequency"), set.getString("IP")); 
+	        	 ReaderProfile entry = new ReaderProfile(set.getString("ID"), set.getString("Frequency"), set.getString("IP"));
 	        	 profiles.add(entry);
 	         }
 
@@ -54,10 +54,10 @@ public class Database {
 	         System.out.println("ResultSet iteration error");
 	         System.exit(-1);
 	      }
-	  
+
 	  return profiles;
    }
-   
+
    public void getRecentItems() {
       ResultSet set = null;
       int idx = 1;
@@ -154,6 +154,7 @@ public class Database {
          itemInfo.put("CheckIn", set.getString("CheckIn"));
          itemInfo.put("CheckOut", set.getString("CheckOut"));
          itemInfo.put("LastCalibrated", set.getString("LastCalibrated"));
+         itemInfo.put("Location", set.getString("Location"));
          set.close();
       } catch (SQLException e) {
          e.printStackTrace();

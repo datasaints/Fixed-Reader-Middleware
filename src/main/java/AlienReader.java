@@ -120,7 +120,7 @@ public class AlienReader extends AlienClass1Reader implements Runnable {
 
    @Override
    public void run() {
-      ArrayList<String> tagList;
+      ArrayList<Tag> tagList;
       /* TODO:
        * while condition should check against a flag/method inside of AlienReaderManager.java to see if it should continue normal operation (aka start stop)
        * This will probably involve looking at AlienReaderManager using myIP as a key to check some running state list.
@@ -137,6 +137,7 @@ public class AlienReader extends AlienClass1Reader implements Runnable {
             System.out.println("Tags from last transaction:" + tagList.toString());
             //check db for previous locations of tags in tagList
             //update accordingly
+            updateTagLocations(tagList);
 
             //transactionDemoMode();
             Thread.sleep(1000);
@@ -155,11 +156,35 @@ public class AlienReader extends AlienClass1Reader implements Runnable {
       System.out.println("thread done");
    }
 
-   private ArrayList<String> detectTransaction() throws InterruptedException, AlienReaderException, IOException {
-      ArrayList<String> tagList = new ArrayList<String>(); // Final tag list to be returned and/or pushed to DB (should never be a large number)
+   private void updateTagLocations(ArrayList<Tag> tagList) {
+      HashMap<String, String> itemInfo;
+      String prevLocation;
+      double tagSpeed;
+
+      //for each tag in the taglist, check previous location
+      for (Tag tag : tagList) {
+         itemInfo = db.getItemInfoById(tag.toString());
+         prevLocation = itemInfo.get("Location");
+
+         //Depending on that previous location AND depending on what access point we are monitoring, update the location
+            // If new assigned location == location this inventory belongs to, mark as checked in
+      }
+   }
+
+   private ArrayList<Tag> detectTransaction() throws InterruptedException, AlienReaderException, IOException {
+      ArrayList<Tag> tagList = new ArrayList<Tag>(); // Final tag list to be returned and/or pushed to DB (should never be a large number)
       Tag[] tags;
       long readNewTagTime, nowTime;
       System.out.println("Entering transaction mode\n");
+
+      /* TODO: new transaction logic
+       * Maintain an array list of TAG objects, not strings
+       *     OR use the TagTable class and/or tagstreaming etc (see java examples in documentation) to allow for speed/direction recording.
+       * for every getTagList call, add new tags, replace old references if already in the arraylist
+       * at the end of the transaction, use the last known location in the db along with the tag reference's getDirection/getSpeed to update the location
+       * for each reader, use a String[2] to tell which locations this access point is separating
+       * add a field in the database for "belongs in", if new location == "belongs in" then update item info to "checked in"
+       */
 
       // Clear any initial tags to start from a clean state
       this.clearTagList();
@@ -180,7 +205,7 @@ public class AlienReader extends AlienClass1Reader implements Runnable {
 
       //Add each tag that was just read to tagList
       for (Tag tag : tags)
-         tagList.add(tag.toString());
+         tagList.add(tag);
 
       while((nowTime = System.currentTimeMillis()) - readNewTagTime < 2000) { // TODO: test this time limit. too small/large a number is bad. probably enough time to push a cart through and not read another tag.
          // Attempt to rescan and see if any new tags were read
@@ -193,8 +218,9 @@ public class AlienReader extends AlienClass1Reader implements Runnable {
 
          if (tags != null) {
             for (Tag tag : tags) {
-               if (!tagList.contains(tag.toString()))
-                  tagList.add(tag.toString());
+               if (tagList.contains(tag))
+                  tagList.remove(tag);
+               tagList.add(tag);
             }
             readNewTagTime = nowTime;
          }
