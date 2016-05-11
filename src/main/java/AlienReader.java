@@ -1,6 +1,7 @@
 package main.java;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.Date;
 import java.sql.Time;
@@ -9,15 +10,20 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import com.alien.enterpriseRFID.reader.*;
-import com.alien.enterpriseRFID.tags.Tag;
+import com.alien.enterpriseRFID.tags.*;
+import com.alien.enterpriseRFID.notify.Message;
+import com.alien.enterpriseRFID.notify.MessageListener;
+import com.alien.enterpriseRFID.notify.MessageListenerService;
+
+
 /**
  * Acts as a wrapper for the AlienClass1Reader class and provides
  * a number of convenience functions for interacting with Alien
  * readers.
  *
  */
-public class AlienReader extends AlienClass1Reader implements Runnable {
-//   public static int nextReaderNumber = 1;
+public class AlienReader extends AlienClass1Reader implements Runnable, MessageListener, TagTableListener {
+   //   public static int nextReaderNumber = 1;
 
    public final static int DEFAULT_RF_LEVEL = 300; // Max value for RF level is 315, set in tenthes of dB. Represents power to the antenna(s).
    public final static String DEFAULT_TAG_MASK = "E200 XXXX XXXX XXXX XXXX XXXX";
@@ -27,6 +33,8 @@ public class AlienReader extends AlienClass1Reader implements Runnable {
    private Database db = new Database(); // Different threads shouldn't share same connection
    private Thread thread = null;
    private ReaderProfile info = null;
+   private TagTable tagTable = new TagTable();
+   private MessageListenerService service = new MessageListenerService(4000);
 
    /**
     * Overloaded constructor. Will use default values for user name/password.
@@ -40,18 +48,30 @@ public class AlienReader extends AlienClass1Reader implements Runnable {
    }
 
    /**
-   * Main constructor. All other constructors will eventually arrive here.
-   * @param ipAddress
-   * @param portNumber
-   * @param username
-   * @param password
+    * Main constructor. All other constructors will eventually arrive here.
+    * @param ipAddress
+    * @param portNumber
+    * @param username
+    * @param password
     * @throws AlienReaderException
     * @throws UnknownHostException
-   */
+    */
    public AlienReader(String ipAddress, int portNumber, String username, String password) throws UnknownHostException, AlienReaderException {
       super(ipAddress, portNumber);
       initializeReader(username, password);
       info = new ReaderProfile(ipAddress);
+      tagTable.setTagTableListener(this);
+      service.setMessageListener(this);
+
+      try {
+         service.startService();
+      } catch (IOException e) {
+         System.out.println("Error starting MessageListenerService for reader: " + ipAddress);
+         e.printStackTrace();
+      }
+      System.out.println("MessageListenerService has started for reader: " + ipAddress);
+
+
    }
 
    /**
@@ -72,14 +92,14 @@ public class AlienReader extends AlienClass1Reader implements Runnable {
 
       //Possibly add check to see if reader number is
       //if(discoveredReader.getReaderNumber() == 255)
-         //reader has default configuration, should call initializeReader().
+      //reader has default configuration, should call initializeReader().
    }
 
    /**
-   * Initialize reader settings and verify reader connection
-   * @throws AlienReaderException
-   * @throws UnknownHostException
-   */
+    * Initialize reader settings and verify reader connection
+    * @throws AlienReaderException
+    * @throws UnknownHostException
+    */
    public void initializeReader(String username, String password) throws UnknownHostException, AlienReaderException {
       // Establish user parameters *no longer needed
       this.setUsername(username);
@@ -89,18 +109,42 @@ public class AlienReader extends AlienClass1Reader implements Runnable {
       this.open();
       this.clearTagList();
 
+
+
+
+      // Set up TagStream.
+      // Use this host's IPAddress, and the port number that the service is listening on.
+      // getHostAddress() may find a wrong (wireless) Ethernet interface, so you may
+      System.out.println("tagStreamAddress is: " + InetAddress.getLocalHost().getHostAddress()); //DELETE ME
+      // need to substitute your computers IP address manually.
+      this.setTagStreamAddress("192.168.0.108", service.getListenerPort());
+
+      // Need to use custom format to get speed.
+      // We need at least the EPC, read time in milliseconds, and the speed
+      String customFormatStr = "Tag:${TAGID}, Last:${MSEC2}, Speed:${SPEED}";
+      this.setTagStreamFormat(AlienClass1Reader.CUSTOM_FORMAT);
+      this.setTagStreamCustomFormat(customFormatStr);
+      // Tell the static TagUtil class about the custom format, so it can decode the streamed data.
+      TagUtil.setCustomFormatString(customFormatStr);
+      // Tell the MessageListenerService that the data has a custom format.
+      service.setIsCustomTagList(true);
+      this.setTagStreamMode(AlienClass1Reader.ON);
+
       // Set reader identifiers
-//      this.setReaderNumber(nextReaderNumber);
-//      this.setReaderName("AlienReader" + nextReaderNumber++);
+      //      this.setReaderNumber(nextReaderNumber);
+      //      this.setReaderName("AlienReader" + nextReaderNumber++);
 
       // Establish behavioral parameters
-      this.setAutoMode(AlienClass1Reader.OFF);
+      //this.setAutoMode(AlienClass1Reader.OFF);
+      this.autoModeReset();
+      this.setAutoMode(AlienClass1Reader.ON);
       this.setRFLevel(DEFAULT_RF_LEVEL);
-//      this.setTagMask(tagMask);
-      this.setTagListFormat(AlienClass1Reader.TEXT_FORMAT);
-      this.setTagStreamFormat(AlienClass1Reader.TEXT_FORMAT);
-      this.setTagListMillis(AlienClass1Reader.ON);
-
+      //      this.setTagMask(tagMask);
+      //      this.setTagListFormat(AlienClass1Reader.TEXT_FORMAT);
+      //      this.setTagStreamFormat(AlienClass1Reader.TEXT_FORMAT);
+      //      this.setTagListMillis(AlienClass1Reader.ON);
+//      this.close();
+      System.out.println("Initialized reader");
    }
 
    /**
@@ -162,12 +206,13 @@ public class AlienReader extends AlienClass1Reader implements Runnable {
       double tagSpeed;
 
       //for each tag in the taglist, check previous location
-      for (Tag tag : tagList) {
-         itemInfo = db.getItemInfoById(tag.toString());
-         prevLocation = itemInfo.get("Location");
+      for (Tag tag : tagTable.getTagList()) {
+         //         itemInfo = db.getItemInfoById(tag.toString());
+         //         prevLocation = itemInfo.get("Location");
 
+         System.out.println("Tag: " + tag.getTagID() + ", Speed: " + tag.getSmoothSpeed() + ", Position: " + tag.getSmoothPosition());
          //Depending on that previous location AND depending on what access point we are monitoring, update the location
-            // If new assigned location == location this inventory belongs to, mark as checked in
+         // If new assigned location == location this inventory belongs to, mark as checked in
       }
    }
 
@@ -188,6 +233,7 @@ public class AlienReader extends AlienClass1Reader implements Runnable {
 
       // Clear any initial tags to start from a clean state
       this.clearTagList();
+      tagTable.clearTagList();
 
       /* TODO: Delete this reference comment
        * If reader is in interactive mode, getTagList triggers a scan as well as report of tags
@@ -204,8 +250,10 @@ public class AlienReader extends AlienClass1Reader implements Runnable {
       readNewTagTime = System.currentTimeMillis();
 
       //Add each tag that was just read to tagList
-      for (Tag tag : tags)
+      for (Tag tag : tags) {
          tagList.add(tag);
+         tagTable.addTag(tag);
+      }
 
       while((nowTime = System.currentTimeMillis()) - readNewTagTime < 2000) { // TODO: test this time limit. too small/large a number is bad. probably enough time to push a cart through and not read another tag.
          // Attempt to rescan and see if any new tags were read
@@ -218,8 +266,10 @@ public class AlienReader extends AlienClass1Reader implements Runnable {
 
          if (tags != null) {
             for (Tag tag : tags) {
-               if (tagList.contains(tag))
-                  tagList.remove(tag);
+               tagTable.addTag(tag);
+               for (Tag t : tagList)
+                  if (t.getTagID().equals(tag.getTagID()))
+                     tagList.remove(tag);
                tagList.add(tag);
             }
             readNewTagTime = nowTime;
@@ -228,10 +278,10 @@ public class AlienReader extends AlienClass1Reader implements Runnable {
       // Transaction timer has finished, therefore construct initial list for DB transaction
       // TODO: test if internal tag list only keeps unique tags or multiple instances of same tag
       // If unique then we can remove the if statement and go straight to adding the tag string
-//      for (Tag tag : tags) {
-//         if (!tagList.contains(tag.toString()))
-//            tagList.add(tag.toString());
-//      }
+      //      for (Tag tag : tags) {
+      //         if (!tagList.contains(tag.toString()))
+      //            tagList.add(tag.toString());
+      //      }
       return tagList;
    }
 
@@ -309,14 +359,59 @@ public class AlienReader extends AlienClass1Reader implements Runnable {
    }
 
    public void setProfile(ReaderProfile info) {
-	   this.info = info;
+      this.info = info;
    }
 
    public ReaderProfile getProfile() {
-	   return this.info;
+      return this.info;
    }
 
    public Database getDatabase() {
-	   return this.db;
+      return this.db;
    }
+
+   /**
+    * Implements the TagTableListener interface.
+    *
+    * When a TagTable is updated, it tells its TagTableListener via these methods.
+    * We let the TagTable tell us about new tag reads, so that we get access to the
+    * smoothed speed and distance values without having to manually look up in the
+    * TagTable after   tags.T
+    */
+   @Override
+   public void tagAdded(Tag tag) {
+      System.out.println("New Tag: " + tag.getTagID() + ", v0=" + tag.getSpeed() + ", d0=" + tag.getSmoothPosition());
+   }
+   @Override
+   public void tagRenewed(Tag tag) {
+      System.out.println(tag.getTagID() + ", v=" + tag.getSmoothSpeed() + ", d=" + tag.getSmoothPosition());
+   }
+
+   @Override
+   public void tagRemoved(Tag tag) {
+      // Don't care
+   }
+
+
+   /**
+    * Implements the MessageListener interface.
+    *
+    * Data from the reader is captured by a MessageListenerService, which then
+    * tells its MessageListeners via this method.
+    */
+   @Override
+   public void messageReceived(Message message){
+      System.out.println("message received");
+      for (int i=0; i < message.getTagCount(); i++) {
+         Tag tag = message.getTag(i);
+
+         // TagTable will automatically merge new information about an existing
+         // tag, including calculating a smoothed speed and distance update.
+         tagTable.addTag(tag);
+
+         // After this merge is done, the TagTable will notify us with the final
+         // data via the TagTableListener interface (tagAdded, tagRenewed, etc.).
+      }
+   }
+
 }
