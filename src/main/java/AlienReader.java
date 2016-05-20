@@ -6,6 +6,7 @@ import java.net.UnknownHostException;
 import java.sql.Date;
 import java.sql.Time;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -35,6 +36,7 @@ public class AlienReader extends AlienClass1Reader implements Runnable, MessageL
    private ReaderProfile info = null;
    private TagTable tagTable = new TagTable();
    private MessageListenerService service = new MessageListenerService(4000);
+   private String[] locations = null;
 
    /**
     * Overloaded constructor. Will use default values for user name/password.
@@ -70,8 +72,6 @@ public class AlienReader extends AlienClass1Reader implements Runnable, MessageL
          e.printStackTrace();
       }
       System.out.println("MessageListenerService has started for reader: " + ipAddress);
-
-
    }
 
    /**
@@ -183,6 +183,9 @@ public class AlienReader extends AlienClass1Reader implements Runnable, MessageL
             //update accordingly
             updateTagLocations(tagList);
 
+            // Associate transaction with an employee, if any
+            matchEmployee();
+
             //transactionDemoMode();
             Thread.sleep(1000);
          } catch (AlienReaderException e) {
@@ -200,19 +203,58 @@ public class AlienReader extends AlienClass1Reader implements Runnable, MessageL
       System.out.println("thread done");
    }
 
+   private void matchEmployee() {
+      String employeeName = "Unknown";
+      Tag employeeTag = null;
+
+      // TODO: Decide how frequently we want to pull the employee information , for now, check against every tag on every transaction
+
+      for (Tag tag : this.tagTable.getTagList()) {
+         /* if (db.employeeTable.contains(tag.getID())) {
+          *    employeeName =
+          *    break;
+          * }
+          */
+      }
+
+      // assign employee name to each tag
+      for (Tag tag : this.tagTable.getTagList()) {
+         if (!tag.equals(employeeTag)) {
+            //Assign the employee name to the employee field of inventory
+            this.db.updateItemFieldById(tag.getTagID(), "Employee", employeeName);
+         }
+      }
+   }
+
    private void updateTagLocations(ArrayList<Tag> tagList) {
       HashMap<String, String> itemInfo;
-      String prevLocation;
+      String newLocation;
       double tagSpeed;
 
-      //for each tag in the taglist, check previous location
+      assert(this.locations != null);
+
       for (Tag tag : tagTable.getTagList()) {
          //         itemInfo = db.getItemInfoById(tag.toString());
          //         prevLocation = itemInfo.get("Location");
 
-         System.out.println("Tag: " + tag.getTagID() + ", Speed: " + tag.getSmoothSpeed() + ", Position: " + tag.getSmoothPosition());
+         System.out.println("Tag: " + tag.getTagID() + ", Speed: " + tag.getSmoothSpeed() + ", Position: " + tag.getSmoothPosition()
+               + ", Direction: " + tag.getDirection());
+
          //Depending on that previous location AND depending on what access point we are monitoring, update the location
          // If new assigned location == location this inventory belongs to, mark as checked in
+         switch (tag.getDirection()) {
+            case Tag.DIR_AWAY:
+               newLocation = this.locations[0];
+               break;
+            case Tag.DIR_TOWARD:
+               newLocation = this.locations[1];
+               break;
+            default:
+               itemInfo = db.getItemInfoById(tag.getTagID());
+               newLocation = itemInfo.get("Location");
+               break;
+         }
+         db.updateItemFieldById(tag.getTagID(), "Location", newLocation);
       }
    }
 
@@ -282,6 +324,8 @@ public class AlienReader extends AlienClass1Reader implements Runnable, MessageL
       //         if (!tagList.contains(tag.toString()))
       //            tagList.add(tag.toString());
       //      }
+
+      // TODO: Remove tagList logic (it's been replaced by tagTable)
       return tagList;
    }
 
@@ -368,6 +412,25 @@ public class AlienReader extends AlienClass1Reader implements Runnable, MessageL
 
    public Database getDatabase() {
       return this.db;
+   }
+
+   public void setLocations(String[] inputLocations) {
+      if (inputLocations.length != 2)
+         throw new IllegalArgumentException("String array should be of length 2.");
+
+      /*
+       * TODO: Possibly check that input string array elements match known locations via database query
+       * eg:
+       * locationList = db.getLocations; // A method either we implement or database team provides as http function
+       * if (!locationList.contains(inputLocations[0]) || !locationList.contains(inputLocations[1])
+       *    throw new IllegalArgumentException("String array elements do not match known locations");
+       */
+
+      this.locations = Arrays.copyOf(inputLocations, 2);
+   }
+
+   public String[] getLocations() {
+      return this.locations;
    }
 
    /**
