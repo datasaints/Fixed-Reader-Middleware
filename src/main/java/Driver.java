@@ -3,9 +3,15 @@ package main.java;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import com.alien.enterpriseRFID.reader.AlienReaderException;
-import static spark.Spark.*;
 
+import com.alien.enterpriseRFID.reader.AlienReaderException;
+
+import static spark.Spark.*;
+import main.java.Services;
+import main.java.Item.Status;
+
+import java.sql.Date;
+import java.sql.Timestamp;
 
 public class Driver {
    public static AlienReaderManager arManager = new AlienReaderManager();
@@ -95,6 +101,25 @@ public class Driver {
       put("/updateReaders", (req, res) -> {
          return "";
       });
-   }
 
+
+
+      get("/testGET", (req, res) -> {
+         return Services.findItemByID("7");
+      });
+
+      get("/testPOST", (req, res) -> {
+         Item testItem = new Item();
+         testItem.setId("7");
+         testItem.setOwner("Production");
+         testItem.setSerial(145781);
+         testItem.setItemName("METItem7");
+         testItem.setLocation("Metrology");
+         testItem.setStatus(Status.CHECKED_IN);
+         testItem.setLastCalibrated(new Date(2016, 4, 8));
+         testItem.setCheckTime(new Timestamp(System.nanoTime()));
+
+         return Services.updateItem(testItem);
+      });
+   }
 }
