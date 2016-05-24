@@ -10,6 +10,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import org.json.simple.JSONObject;
+
 import com.alien.enterpriseRFID.reader.*;
 import com.alien.enterpriseRFID.tags.*;
 import com.alien.enterpriseRFID.notify.Message;
@@ -36,7 +38,7 @@ public class AlienReader extends AlienClass1Reader implements Runnable, MessageL
    private ReaderProfile info = null;
    private TagTable tagTable = new TagTable();
    private MessageListenerService service = new MessageListenerService(4000);
-   private String[] locations = null;
+   private String[] locations = {"Unknown", "Unkown"};
 
    /**
     * Overloaded constructor. Will use default values for user name/password.
@@ -197,6 +199,9 @@ public class AlienReader extends AlienClass1Reader implements Runnable, MessageL
          } catch (IOException e) {
             System.out.println(e);
             break;
+         } catch (Exception e) {
+            System.out.println(e);
+            break;
          }
       }
 
@@ -224,14 +229,13 @@ public class AlienReader extends AlienClass1Reader implements Runnable, MessageL
             this.db.updateItemFieldById(tag.getTagID(), "Employee", employeeName);
          }
       }
+      //TODO: Describe alternative method of keeping employee
    }
 
-   private void updateTagLocations(ArrayList<Tag> tagList) {
+   private void updateTagLocations(ArrayList<Tag> tagList) throws Exception {
       HashMap<String, String> itemInfo;
       String newLocation;
       double tagSpeed;
-
-      assert(this.locations != null);
 
       for (Tag tag : tagTable.getTagList()) {
          //         itemInfo = db.getItemInfoById(tag.toString());
@@ -254,7 +258,12 @@ public class AlienReader extends AlienClass1Reader implements Runnable, MessageL
                newLocation = itemInfo.get("Location");
                break;
          }
-         db.updateItemFieldById(tag.getTagID(), "Location", newLocation);
+
+         //db.updateItemFieldById(tag.getTagID(), "Location", newLocation);
+
+         JSONObject jsonItemObject = Services.findItemByID(tag.getTagID());
+         String resp = Services.updateItem(new Item(jsonItemObject));
+         System.out.println("Item: " + jsonItemObject.toJSONString() + "\nResp: " + resp);
       }
    }
 

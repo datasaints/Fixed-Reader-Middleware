@@ -105,7 +105,7 @@ public class Driver {
 
 
       get("/testGET", (req, res) -> {
-         return Services.findItemByID("7");
+         return Services.findItemByID("7").toJSONString();
       });
 
       get("/testPOST", (req, res) -> {

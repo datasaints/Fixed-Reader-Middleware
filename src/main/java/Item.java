@@ -43,6 +43,20 @@ public class Item {
       this.checkTime = checkTime;
    }
 
+   public Item(JSONObject obj) {
+      this.id = (String) obj.get("id");
+      this.owner = (String) obj.get("owner");
+      this.serial = (int) obj.get("serial");
+      this.itemName = (String) obj.get("itemName");
+      this.location = (String) obj.get("location");
+      this.status = Status.valueOf((String)obj.get("status"));
+
+      String tokens[] = ((String) obj.get("lastCalibrated")).split("-");
+      this.lastCalibrated = new Date(
+            Integer.parseInt(tokens[0]), Integer.parseInt(tokens[1]), Integer.parseInt(tokens[2]));
+      this.checkTime = new Timestamp(Long.parseLong((String) obj.get("checkTime")));
+   }
+
    // Getters
 
    public String getId() {

@@ -10,6 +10,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 
+import org.json.simple.*;
+import org.json.simple.parser.JSONParser;
+
 public class Services {
 
    private static final String ENDPOINT_FINDITEM = "http://datasaints-env.us-west-1.elasticbeanstalk.com/findItemByID/";
@@ -17,7 +20,7 @@ public class Services {
    private static final String USER_AGENT = "Mozilla/5.0";
 
    // HTTP GET - findItemByID
-   public static String findItemByID(String itemID) throws Exception {
+   public static JSONObject findItemByID(String itemID) throws Exception {
       URL obj = new URL(ENDPOINT_FINDITEM + itemID);
       HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
@@ -41,9 +44,14 @@ public class Services {
       }
       in.close();
 
+      JSONParser parser = new JSONParser();
+      JSONObject jObj = (JSONObject) parser.parse(response.toString());
+
+
       //print result
-//      System.out.println(response.toString());
-      return response.toString();
+      System.out.println(jObj.toJSONString());
+
+      return jObj;
    }
 
    // HTTP POST - updateItem
