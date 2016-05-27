@@ -87,7 +87,7 @@ public class Driver {
 
          Thread thread = new Thread(reader);
          reader.setThread(thread); // Why is this necessary?
-         //thread.start();
+         thread.start();
 
          return "succesfully discovered and added reader";
       });

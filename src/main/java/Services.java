@@ -21,6 +21,8 @@ public class Services {
 
    // HTTP GET - findItemByID
    public static JSONObject findItemByID(String itemID) throws Exception {
+      System.out.println("Calling findItemByID with id: " + itemID + "\nComplete URL: "
+            + ENDPOINT_FINDITEM + itemID);
       URL obj = new URL(ENDPOINT_FINDITEM + itemID);
       HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
@@ -31,7 +33,7 @@ public class Services {
       con.setRequestProperty("User-Agent", USER_AGENT);
 
       int responseCode = con.getResponseCode();
-      System.out.println("\nSending 'GET' request to URL : " + ENDPOINT_FINDITEM);
+      System.out.println("\nSending 'GET' request to URL : " + ENDPOINT_FINDITEM + itemID);
       System.out.println("Response Code : " + responseCode);
 
       BufferedReader in = new BufferedReader(
@@ -58,6 +60,7 @@ public class Services {
    public static String updateItem(Item item) throws Exception {
       String payload = item.toJSONString();
 
+      System.out.println("JSON object to be sent as update: " + payload);
       URL url = new URL(ENDPOINT_UPDATEITEM);
       URLConnection connection = url.openConnection();
       connection.setRequestProperty("User-Agent", USER_AGENT);

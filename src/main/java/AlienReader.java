@@ -28,7 +28,7 @@ import com.alien.enterpriseRFID.notify.MessageListenerService;
 public class AlienReader extends AlienClass1Reader implements Runnable, MessageListener, TagTableListener {
    //   public static int nextReaderNumber = 1;
 
-   public final static int DEFAULT_RF_LEVEL = 300; // Max value for RF level is 315, set in tenthes of dB. Represents power to the antenna(s).
+   public final static int DEFAULT_RF_LEVEL = 315; // Max value for RF level is 315, set in tenthes of dB. Represents power to the antenna(s).
    public final static String DEFAULT_TAG_MASK = "E200 XXXX XXXX XXXX XXXX XXXX";
    private final static String DEFAULT_USERNAME = "alien";
    private final static String DEFAULT_PASSWORD = "password";
@@ -38,7 +38,7 @@ public class AlienReader extends AlienClass1Reader implements Runnable, MessageL
    private ReaderProfile info = null;
    private TagTable tagTable = new TagTable();
    private MessageListenerService service = new MessageListenerService(4000);
-   private String[] locations = {"Unknown", "Unkown"};
+   private String[] locations = {"Production", "Metrology"};
 
    /**
     * Overloaded constructor. Will use default values for user name/password.
@@ -65,6 +65,7 @@ public class AlienReader extends AlienClass1Reader implements Runnable, MessageL
       initializeReader(username, password);
       info = new ReaderProfile(ipAddress);
       tagTable.setTagTableListener(this);
+      tagTable.setPersistTime(1000);
       service.setMessageListener(this);
 
       try {
@@ -119,7 +120,7 @@ public class AlienReader extends AlienClass1Reader implements Runnable, MessageL
       // getHostAddress() may find a wrong (wireless) Ethernet interface, so you may
       System.out.println("tagStreamAddress is: " + InetAddress.getLocalHost().getHostAddress()); //DELETE ME
       // need to substitute your computers IP address manually.
-      this.setTagStreamAddress("192.168.0.108", service.getListenerPort());
+      this.setTagStreamAddress("192.168.2.2", service.getListenerPort());
 
       // Need to use custom format to get speed.
       // We need at least the EPC, read time in milliseconds, and the speed
@@ -173,38 +174,33 @@ public class AlienReader extends AlienClass1Reader implements Runnable, MessageL
        * Thread.stop() and the like have been deprecated so this is the proper way to stop the thread/runnable.
        * for now just putting true for development
        */
-      while (true) {
-         try {
-            System.out.println("Reader of " + this.getIPAddress() + " is running.");
-            // Stay in smartTransactionMode until a transaction has occurred (someone walked in/out with inventory)
-            tagList = detectTransaction();
-            System.out.println("Reader of " + this.getIPAddress() + " just completed a transaction. Sanitizing data.");
+      try {
+         System.out.println("Reader thread of " + this.getIPAddress() + " just started running.");
+         while (true) {
+               // Stay in smartTransactionMode until a transaction has occurred (someone walked in/out with inventory)
+               //tagList = detectTransaction();
+               //System.out.println("Reader of " + this.getIPAddress() + " just completed a transaction. Sanitizing data.");
 
-            System.out.println("Tags from last transaction:" + tagList.toString());
-            //check db for previous locations of tags in tagList
-            //update accordingly
-            updateTagLocations(tagList);
+               //System.out.println("Tags from last transaction:" + tagList.toString());
+               //check db for previous locations of tags in tagList
+               //update accordingly
+               //updateTagLocations(tagList);
 
-            // Associate transaction with an employee, if any
-            matchEmployee();
+               // Associate transaction with an employee, if any
+               //matchEmployee();
 
-            //transactionDemoMode();
-            Thread.sleep(1000);
-         } catch (AlienReaderException e) {
-            System.out.println(e);
-            break;
-         } catch (InterruptedException e) {
-            System.out.println(e);
-            break;
-         } catch (IOException e) {
-            System.out.println(e);
-            break;
-         } catch (Exception e) {
-            System.out.println(e);
-            break;
+               this.tagTable.removeOldTags();
+
+               Thread.sleep(1000);
          }
-      }
 
+      } catch (AlienReaderException e) {
+         System.out.println(e);
+      } catch (InterruptedException e) {
+         System.out.println(e);
+      } catch (Exception e) {
+         System.out.println(e);
+      }
       System.out.println("thread done");
    }
 
@@ -231,11 +227,40 @@ public class AlienReader extends AlienClass1Reader implements Runnable, MessageL
       }
       //TODO: Describe alternative method of keeping employee
    }
+   private void updateTagLocations(Tag tag) throws Exception {
+      HashMap<String, String> itemInfo;
+      String newLocation, resp = "DIDNT UPDATE";
+
+      System.out.println("Tag: " + tag.getTagID() + ", Speed: " + tag.getSmoothSpeed() + ", Position: " + tag.getSmoothPosition()
+            + ", Direction: " + tag.getDirection());
+
+      //Depending on that previous location AND depending on what access point we are monitoring, update the location
+      // If new assigned location == location this inventory belongs to, mark as checked in
+
+
+      JSONObject jsonItemObject = Services.findItemByID(tag.getTagID());
+      Item item = new Item(jsonItemObject);
+
+      if(tag.getSmoothSpeed() < 0) {
+         //METROLOGY (INSIDE)
+         item.setLocation(this.locations[0]);
+         resp = Services.updateItem(item);
+      }
+      if(tag.getSmoothSpeed() > 0) {
+         //PRODUCTION (OUTSIDE)
+         item.setLocation(this.locations[1]);
+         resp = Services.updateItem(item);
+      }
+      else {
+         System.out.println("Hit default case in updateTagLocation");
+      }
+
+      System.out.println("Item: " + jsonItemObject.toJSONString() + "\nResp: " + resp);
+   }
 
    private void updateTagLocations(ArrayList<Tag> tagList) throws Exception {
       HashMap<String, String> itemInfo;
       String newLocation;
-      double tagSpeed;
 
       for (Tag tag : tagTable.getTagList()) {
          //         itemInfo = db.getItemInfoById(tag.toString());
@@ -254,6 +279,7 @@ public class AlienReader extends AlienClass1Reader implements Runnable, MessageL
                newLocation = this.locations[1];
                break;
             default:
+               System.out.println("Hit default case in updateTagLocation");
                itemInfo = db.getItemInfoById(tag.getTagID());
                newLocation = itemInfo.get("Location");
                break;
@@ -262,7 +288,9 @@ public class AlienReader extends AlienClass1Reader implements Runnable, MessageL
          //db.updateItemFieldById(tag.getTagID(), "Location", newLocation);
 
          JSONObject jsonItemObject = Services.findItemByID(tag.getTagID());
-         String resp = Services.updateItem(new Item(jsonItemObject));
+         Item item = new Item(jsonItemObject);
+         item.setLocation(newLocation);
+         String resp = Services.updateItem(item);
          System.out.println("Item: " + jsonItemObject.toJSONString() + "\nResp: " + resp);
       }
    }
@@ -452,16 +480,21 @@ public class AlienReader extends AlienClass1Reader implements Runnable, MessageL
     */
    @Override
    public void tagAdded(Tag tag) {
-      System.out.println("New Tag: " + tag.getTagID() + ", v0=" + tag.getSpeed() + ", d0=" + tag.getSmoothPosition());
+      System.out.println("NEW Tag: " + tag.getTagID() + ", v0=" + tag.getSpeed() + ", d0=" + tag.getDirection());
    }
    @Override
    public void tagRenewed(Tag tag) {
-      System.out.println(tag.getTagID() + ", v=" + tag.getSmoothSpeed() + ", d=" + tag.getSmoothPosition());
+      System.out.println(tag.getTagID() + ", v=" + tag.getSmoothSpeed() + ", d=" + tag.getDirection());
    }
-
    @Override
    public void tagRemoved(Tag tag) {
-      // Don't care
+      System.out.println("Tag REMOVED: " + tag.getTagID() + ", v0=" + tag.getSpeed() + ", d0=" + tag.getDirection());
+
+      try {
+         updateTagLocations(tag);
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
    }
 
 
@@ -473,7 +506,7 @@ public class AlienReader extends AlienClass1Reader implements Runnable, MessageL
     */
    @Override
    public void messageReceived(Message message){
-      System.out.println("message received");
+      //System.out.println("message received");
       for (int i=0; i < message.getTagCount(); i++) {
          Tag tag = message.getTag(i);
 

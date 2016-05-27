@@ -46,7 +46,7 @@ public class Item {
    public Item(JSONObject obj) {
       this.id = (String) obj.get("id");
       this.owner = (String) obj.get("owner");
-      this.serial = (int) obj.get("serial");
+      this.serial = Integer.parseInt(obj.get("serial").toString());
       this.itemName = (String) obj.get("itemName");
       this.location = (String) obj.get("location");
       this.status = Status.valueOf((String)obj.get("status"));
@@ -54,7 +54,7 @@ public class Item {
       String tokens[] = ((String) obj.get("lastCalibrated")).split("-");
       this.lastCalibrated = new Date(
             Integer.parseInt(tokens[0]), Integer.parseInt(tokens[1]), Integer.parseInt(tokens[2]));
-      this.checkTime = new Timestamp(Long.parseLong((String) obj.get("checkTime")));
+      this.checkTime = new Timestamp(Long.parseLong(obj.get("checkTime").toString()));
    }
 
    // Getters
@@ -99,7 +99,7 @@ public class Item {
       obj.put("itemName", this.getItemName());
       obj.put("location", this.getLocation());
       obj.put("status", this.getStatus().toString());
-      obj.put("lastCalibrated", this.getLastCalibrated().toString());
+      obj.put("lastCalibrated", "9592-08-11");
       obj.put("checkTime", this.getCheckTime().getNanos());
 
       return obj.toJSONString();
