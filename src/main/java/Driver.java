@@ -13,59 +13,66 @@ import main.java.Item.Status;
 import java.sql.Date;
 import java.sql.Timestamp;
 
+/**
+ * Main Driver class for the Middleware Server
+ */
 public class Driver {
+   // Reader manager that contains all instances of readers
    public static AlienReaderManager arManager = new AlienReaderManager();
+
+   // List of all database profiles
    public static ArrayList<ReaderProfile> dbProfiles = new ArrayList<ReaderProfile>();
+
+   // Main Database reference
    public static Database mainDatabase = null;
 
+   /**
+    * Main
+    */
    public static void main(String[] args) throws UnknownHostException, AlienReaderException, InterruptedException {
       // port(Integer.valueOf(System.getenv("PORT")));
+
+      // Sets localhost port to 3000
       port(3000);
 
+      // Initialize all routes
       initializeRoutes();
 
       System.out.println("Exiting main...");
    }
 
+   /**
+    * Sends a command to a specified reader
+    * @param  reader               the desired reader
+    * @param  cmd                  the desired command
+    * @throws AlienReaderException if the command fails to execute on the reader
+    */
    private static void sendReaderCommand(AlienReader reader, String cmd) throws AlienReaderException {
-	      if (reader == null) {
-	         System.out.println("Reader has not been set. Perform a 'Connect Reader'" +
-	                            " call from the main menu first.");
-	         return;
-	      }
+      // Verify valid reader
+      if (reader == null) {
+         System.out.println("Reader has not been set. Perform a 'Connect Reader'" +
+                            " call from the main menu first.");
+         return;
+      }
 
-	      reader.open();
-	      reader.doReaderCommand(cmd);
-	      reader.close();
+      reader.open();
+      reader.doReaderCommand(cmd);
+      reader.close();
    }
 
+   /**
+    * Retrieves and sets the list of readers currently handled by the reader
+    */
    private static void getUpdatedProfiles() {
 	   dbProfiles = mainDatabase.getReaderProfiles();
    }
 
-   /*
-    * Right now the only field to compare is frequency
-    * we need to figure out what else we need in the profiles
+   /**
+    * Initializes all the URL routes of the middleware server
+    * http://sparkjava.com/documentation.html
     */
-   private static void updateReaders() {
-	   int i = 0;
-
-	   while (i < dbProfiles.size()) {
-		   ReaderProfile dbReader = dbProfiles.get(i);
-		   ReaderProfile curReader = arManager.getReaderByIP(dbReader.getIP()).getProfile();
-
-		   if (Integer.parseInt(dbReader.getFrequency()) != Integer.parseInt(curReader.getFrequency())) {
-			   curReader.setFrequency(dbReader.getFrequency());
-			   //sendReaderCommand(arManager.getReaderByIP(dbReader.IP), "set frequency to " + dbReader.frequency);
-		   }
-		   i++;
-	   }
-   }
-
    private static void initializeRoutes() {
-      // http://sparkjava.com/documentation.html
-      get("/hello", (req, res) -> "Hello World");
-
+      // POST addReader - Add a new reader and immediately runs a new thread for it
       post("/addReader", (req, res) -> {
          String ip = req.queryParams("ip");
          int port = Integer.valueOf(req.queryParams("port"));
@@ -92,22 +99,7 @@ public class Driver {
          return "succesfully discovered and added reader";
       });
 
-      post("/newReader", (req, res) -> {
-         String ip = req.queryParams("ip");
-         String name = req.queryParams("name");
-         return "";
-      });
-
-      put("/updateReaders", (req, res) -> {
-         return "";
-      });
-
-
-
-      get("/testGET", (req, res) -> {
-         return Services.findItemByID("7").toJSONString();
-      });
-
+      // GET testPOST, used for testing purposes
       get("/testPOST", (req, res) -> {
          Item testItem = new Item();
          testItem.setId("7");
