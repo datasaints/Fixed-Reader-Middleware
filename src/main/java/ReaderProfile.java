@@ -5,13 +5,10 @@ import java.util.HashMap;
 /**
  * Class to contain the information from the fields of the database
  * reader profile table.
- *
- * @author Bobby
- *
  */
 public class ReaderProfile {
-   //public class variables will be the fields of the reader profile table
 
+  //public class variables will be the fields of the reader profile table
 	private String ID = null;
 	private String frequency = null;
 	private String IP = null;
@@ -56,13 +53,21 @@ public class ReaderProfile {
 	   this.IP = IP;
    }
 
+   /**
+    * Constructor for making a profile according to an IP address
+    * @param  IP the string representation of an IP address
+    */
    public ReaderProfile(String IP) {
 	   this.IP = IP;
    }
 
+   // Setters
+
    public void setFrequency(String freq) {
 	   this.frequency = freq;
    }
+
+   // Getters
 
    public String getFrequency() {
 	   return this.frequency;

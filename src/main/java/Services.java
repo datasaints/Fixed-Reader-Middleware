@@ -13,16 +13,28 @@ import java.net.URLConnection;
 import org.json.simple.*;
 import org.json.simple.parser.JSONParser;
 
+/**
+ * Services class helps the Middleware server to HTTP Endpoints found on the main web client
+ */
 public class Services {
 
+   // URL HTTP Endpoints
    private static final String ENDPOINT_FINDITEM = "http://datasaints-env.us-west-1.elasticbeanstalk.com/findItemByID/";
    private static final String ENDPOINT_UPDATEITEM = "http://datasaints-env.us-west-1.elasticbeanstalk.com/updateItem";
+
+   // Header/Payload attributes
    private static final String USER_AGENT = "Mozilla/5.0";
 
-   // HTTP GET - findItemByID
+   /**
+    * GET HTTP Request to return an item by ID
+    * @param  itemID    the tagID of an inventory item
+    * @return JSON Object representation of the item
+    * @throws Exception
+    */
    public static JSONObject findItemByID(String itemID) throws Exception {
       System.out.println("Calling findItemByID with id: " + itemID + "\nComplete URL: "
             + ENDPOINT_FINDITEM + itemID);
+      // Open a connection
       URL obj = new URL(ENDPOINT_FINDITEM + itemID);
       HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
@@ -46,9 +58,9 @@ public class Services {
       }
       in.close();
 
+      // Parse the response to a JSON object
       JSONParser parser = new JSONParser();
       JSONObject jObj = (JSONObject) parser.parse(response.toString());
-
 
       //print result
       System.out.println(jObj.toJSONString());
@@ -56,7 +68,12 @@ public class Services {
       return jObj;
    }
 
-   // HTTP POST - updateItem
+   /**
+    * POST HTTP Request to update an item by its ID
+    * @param  item      the item
+    * @return string response of the result of the request
+    * @throws Exception
+    */
    public static String updateItem(Item item) throws Exception {
       String payload = item.toJSONString();
 

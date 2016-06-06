@@ -6,7 +6,11 @@ import java.sql.Timestamp;
 
 import org.json.simple.*;
 
+/**
+ * Data model for an inventory item
+ */
 public class Item {
+   // Checked in status as enum representation
    public enum Status {
       CHECKED_IN, CHECKED_OUT
    }
@@ -20,6 +24,9 @@ public class Item {
    private Date lastCalibrated;
    private Timestamp checkTime;  // Date and time checked in or checked out
 
+   /**
+    * Constructor
+    */
    public Item() {
       this.id = "";
       this.owner = "";
@@ -31,6 +38,18 @@ public class Item {
       this.checkTime = null;
    }
 
+   /**
+    * Constructor
+    * @param  id
+    * @param  owner
+    * @param  serial
+    * @param  itemName
+    * @param  location
+    * @param  status
+    * @param  lastCalibrated
+    * @param  checkTime
+    * @return
+    */
    public Item(String id, String owner, int serial, String itemName,
          String location, Status status, Date lastCalibrated, Timestamp checkTime) {
       this.id = id;
@@ -43,6 +62,10 @@ public class Item {
       this.checkTime = checkTime;
    }
 
+   /**
+    * Constructor
+    * @param  obj JSON object representation of the item
+    */
    public Item(JSONObject obj) {
       this.id = (String) obj.get("id");
       this.owner = (String) obj.get("owner");
@@ -91,6 +114,10 @@ public class Item {
       return this.checkTime;
    }
 
+   /**
+    * Converts the item's JSON object representation to a string
+    * @return JSON string representation of the item
+    */
    public String toJSONString() {
       JSONObject obj = new JSONObject();
       obj.put("id", this.getId());
