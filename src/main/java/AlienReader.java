@@ -572,7 +572,7 @@ public class AlienReader extends AlienClass1Reader implements Runnable, MessageL
     * When a TagTable is updated, it tells its TagTableListener via these methods.
     * We let the TagTable tell us about new tag reads, so that we get access to the
     * smoothed speed and distance values without having to manually look up in the
-    * TagTable after   tags.T
+    * TagTable.
     */
    @Override
    public void tagAdded(Tag tag) {
