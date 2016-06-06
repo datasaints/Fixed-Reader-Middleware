@@ -11,17 +11,21 @@ import com.alien.enterpriseRFID.reader.AlienClass1Reader;
 import com.alien.enterpriseRFID.reader.AlienReaderException;
 
 /**
- * Starts a NetworkDiscoveryService to listen for Alien Reader
- * heartbeats that are broadcast over the local subnet. The discovery service
- * notifies this application when a reader is discovered, seen again, or lost.
+ * This service class is meant to act as a listener for the network heartbeats
+ * that newly connected readers on the network will send out at regular intervals.
+ * After receiving a heartbeat, this class adds the reader to the AlienReaderManager
+ * class and updates any settings if available from the reader profile section of the
+ * database. The discovery service notifies this application when a reader is
+ * discovered, seen again, or lost.
  *
  */
 class NetworkDiscover implements DiscoveryListener {
    public NetworkDiscoveryListenerService service;
 
    /**
-    * Constructor
-    * @param readerList
+    * Default constructor beginning the service that listens for
+    * AlienReader network heart beats.
+    *
     */
    public NetworkDiscover() {
       this.service = new NetworkDiscoveryListenerService();
@@ -32,17 +36,6 @@ class NetworkDiscover implements DiscoveryListener {
          // TODO Auto-generated catch block
          e.printStackTrace();
       }
-
-/*
-      try {
-         //Spin while waiting for readers
-         while (service.isRunning()) {
-            Thread.sleep(100);
-         }
-      } catch (InterruptedException e) {
-         // TODO Auto-generated catch block
-         e.printStackTrace();
-      } */
    }
 
    /**
@@ -51,13 +44,13 @@ class NetworkDiscover implements DiscoveryListener {
     *
     * @param discoveryItem details of the newly-discovered reader
     */
-
    @Override
    public void readerAdded(DiscoveryItem discoveryItem){
       System.out.println("Reader Added:\n" + discoveryItem.toString());
-      
 
-      //Make sure that you use the AlienController class instead of the AlienClass1Reader, DONT use the DiscoveryItem.getReader unless it is for constructing a AlienController
+
+      //Make sure that you use the AlienReader class instead of the AlienClass1Reader,
+      //DONT use the DiscoveryItem.getReader method unless it is for constructing a AlienController
 
       //Check to see if there is a reader profile in the database
          //Perhaps use the discoveryItem.getReaderName()
@@ -65,8 +58,7 @@ class NetworkDiscover implements DiscoveryListener {
 
       //Otherwise use a set of default configurations, then notify webApp
 
-      //Finally, add the reader to the readerlist in Driver
-
+      //Finally, add the reader to the AlienReaderManager
       try {
          AlienClass1Reader reader = discoveryItem.getReader();
          Driver.arManager.addReader(reader.getIPAddress(), new AlienReader(reader));
